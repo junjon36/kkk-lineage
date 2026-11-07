@@ -45,7 +45,7 @@
     'use strict';
 
     // 階級權重（總和 100）。true＝基礎「遠古」，其餘為 js/08 ancName 認得的變體 key。
-    var TIER_WEIGHTS = [[true, 25], ['eternal', 25], ['immortal', 25], ['primordial', 25]];
+    var TIER_WEIGHTS = [[true, 40], ['eternal', 40], ['immortal', 30], ['primordial', 30]];
 
     if (window.AFK_TOGGLES) AFK_TOGGLES.register({
         id: 'ancdrop', name: '遠古系裝備', group: '遊戲玩法', def: true,
