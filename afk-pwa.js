@@ -180,12 +180,25 @@
     });
   }
 
-  // ----- SW 觀察:nudge 重抓 sw.js 比對 + 圖桶對帳(更新接管交給瀏覽器,本檔不主導)-----------
+// ----- SW 觀察:nudge 重抓 sw.js 比對 + 圖桶對帳(更新接管交給瀏覽器,本檔不主導)-----------
   function watchUpdates() {
+    // 監聽 Service Worker 的控制權轉換，當新 SW 啟動並控制網頁時，自動重新整理
+    var refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
     navigator.serviceWorker.ready.then(function (r) {
       reg = r;
-      // 載入時 nudge 瀏覽器重抓 sw.js 比對。更新接管走瀏覽器標準流程即可(導覽已 network-first,
-      //   使用者看到的程式碼本來就一律最新,不需頁面端 skip-waiting/強制 reload)。
+      
+      // 如果發現有新安裝好、正在等待的 SW，手動彈一下叫它 skipWaiting
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' }); 
+      }
+
+      // 載入時 nudge 瀏覽器重抓 sw.js 比對
       reg.update().catch(function () {});
       reconcileImages();   // 每次載入:清掉作者換過的舊圖(下次用到才 on-demand 抓新版)
       reconcileAnim();     // 同上,但針對怪物動畫幀(逐「怪」對帳,見 reconcileAnim)

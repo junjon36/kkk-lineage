@@ -35,6 +35,11 @@ const IMG_VERSION  = 'img-v3';    // 固定桶名,不再 bump(失效改走逐張
 const CODE_CACHE = 'code-v1';     // 固定桶名,不隨版本換(檔案以 ?v= 定址;殘留由 reconcileCode 對帳清掉)
 const IMG_CACHE  = IMG_VERSION;
 
+// 強制讓新下載的 Service Worker 立即跳過等待並接管網頁，不用等分頁關閉
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
+});
+
 // 圖桶內一個合成 entry,存「path → 已快取版本的 git blob sha」對照表,供逐張對帳判斷哪張該重抓。
 const IMG_HASH_KEY = '/__afk-img-hashes__';
 // 圖桶內另一個合成 entry,存「assets/anim/<怪>資料夾 → 已快取版本的合併 sha」,供動畫幀逐「怪」對帳(見 reconcileAnim)。
