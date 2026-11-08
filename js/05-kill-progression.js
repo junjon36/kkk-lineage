@@ -582,6 +582,26 @@ function killMob(idx) {
         }
     }
     
+    // === 🏺 遺物席琳結晶：瘋狂席琳世界·Lv50 以上怪物皆有機會掉落（不限頭目），與上方一般席琳結晶各自獨立判定（同一場戰鬥兩者皆有機會掉，互不影響）===
+    //   機率＝0.02%×怪物等級；同樣固定機率、不吃掉落倍率。
+    if (!_kbNoReward && mob._sherine && mob._sherineMad && (mob.lv || 1) >= 50) {   // 🗝️ 軍王之室小怪零產出
+        let _crRelic = 0.0002 * (mob.lv || 1);
+        if (_crRelic > 0 && Math.random() < partyDropRate(_crRelic * classicDropMult())) {
+            gainItem('sherine_crystal_relic', 1);
+            logSys(`<span class="c-relic font-bold">🏺✦✦ 遺物等級的席琳結晶 從 ${mob.n} 的殘骸中浮現！✦✦🏺</span>`);
+        }
+    }
+
+    // === 👑 亞丁聖徽：瘋狂席琳世界·Lv80 以上「頭目」限定，全遊戲目前掉落機率最低的道具（比遺物席琳結晶更稀有），供亞丁城遺物突破使用 ===
+    //   機率＝0.00001%×頭目等級；同樣固定機率、不吃掉落倍率。
+    if (!_kbNoReward && mob._sherine && mob._sherineMad && mob.boss && (mob.lv || 1) >= 80) {   // 🗝️ 軍王之室小怪零產出
+        let _adenEmblem = 0.0001 * (mob.lv || 1);
+        if (_adenEmblem > 0 && Math.random() < partyDropRate(_adenEmblem * classicDropMult())) {
+            gainItem('aden_holy_emblem', 1);
+            logSys(`<span class="c-relic font-bold">👑✦✦ 亞丁聖徽 從 ${mob.n} 的殘骸中浮現，光芒刺目！✦✦👑</span>`);
+        }
+    }
+    
     } finally {
         _combatSrc = _svKillSrc;   // 🩹 v3.3.25 還原擊殺前的來源情境（寵物/召喚/傭兵 tick 的 _dps 歸屬不受污染）
         _sherineLootCtx = null;   // 🔮 掉落判定結束，清除上下文（try/finally：縱使中途拋例外也必清，杜絕 _tradLootCtx 殘留洩漏到兌換/任務/其他 forceNormal=false 獎勵）
@@ -1261,11 +1281,11 @@ function applySherineBuff(idx) {
         _m.mr = Math.floor(_mad
             ? _baseMr + Math.min(_baseMr, 170)                           // 瘋狂：原始 MR＋min(原始 MR, 200)，避免高 MR 頭目被 ×3 壓到近乎魔法免疫
             : _baseMr * 1.5);                                           // 一般：MR×1.5
-        _m.exp = Math.floor((_m.exp || 0) * (_mad ? 20 : 9));           // 經驗×[5/10]
-        _m.goldMin = Math.floor((_m.goldMin || 0) * (_mad ? 20 : 9));   // 金錢×[5/10]
-        _m.goldMax = Math.floor((_m.goldMax || 0) * (_mad ? 20 : 9));
-        _m.hit = Math.floor((_m.hit || 0) * (_mad ? 2 : 1.1));          // 命中×[1.5/2]
-        _m.dr = (_m.dr || 0) + Math.floor((_m.lv || 1) / 5);            // 額外減傷：等級/3（兩者相同）
+        _m.exp = Math.floor((_m.exp || 0) * (_mad ? 15 : 10));           // 經驗×[15/10]
+        _m.goldMin = Math.floor((_m.goldMin || 0) * (_mad ? 15 : 10));   // 金錢×[15/10]
+        _m.goldMax = Math.floor((_m.goldMax || 0) * (_mad ? 15 : 10));
+        _m.hit = Math.floor((_m.hit || 0) * (_mad ? 2 : 1.5));          // 命中×[1.5/2]
+        _m.dr = (_m.dr || 0) + Math.floor((_m.lv || 1) / 3);            // 額外減傷：等級/3（兩者相同）
         _m._sherine = true;   // 一般攻擊傷害×[2/3]、技能最終傷害×[2/3]、掉落×[3/5]、掉落附帶席琳詞綴／套裝效果
         if (_mad) _m._sherineMad = true;   // 🔮 瘋狂旗標：供傷害/掉落/結晶/套裝效果倍率分流
     }
@@ -1284,9 +1304,9 @@ function applySherineGrace(idx) {
             let g = _gc[Math.floor(Math.random() * _gc.length)];
             g._grace = true;
             g.hp = Math.floor(g.hp * 10); g.curHp = g.hp;        // HP×10 並完全恢復
-            g.exp = Math.floor((g.exp || 0) * 50);
+            g.exp = Math.floor((g.exp || 0) * 20);
             g.goldMin = Math.floor((g.goldMin || 0) * 20);
-            g.goldMax = Math.floor((g.goldMax || 0) * 50);
+            g.goldMax = Math.floor((g.goldMax || 0) * 20);
             if (!_mad) mapState.graceCdAt = state.ticks + 1800;  // 3 分鐘冷卻只在一般席琳設定（瘋狂無冷卻）
             logSys(`<span class="grace-badge font-bold">✦ 席琳的恩賜降臨！</span><span class="c-sherine font-bold">${g.n}</span><span class="text-red-300"> 獲得了席琳的力量……擊敗它以奪取豐厚的報酬！</span>`);
         }
