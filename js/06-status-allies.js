@@ -1100,8 +1100,7 @@ function allyAttackOnce(ally, _arrowDelay) {   // 🏹 v3.2.14 _arrowDelay(選�
         // 🔧 硬皮消磨：傭兵一般攻擊命中固定再磨 1（basic，與玩家同規則）；單手鈍器鈍擊另由 allyOnHitEffects 觸發
         if (t.curHp > 0) wearHardSkin(t, ally.eq && ally.eq.wpn ? ally.eq.wpn.id : null, heavy, false, true, ally.classicMode);
         allyOnHitEffects(ally, t, { dmg: dmg, heavy: heavy, hardSkin: _hsT });        // 🔧 命中後特效：穿透/即死/出血/鈍擊/切割（hardSkin 供穿透精通無視判定）
-        let _vampPctAlly = (wpn && wpn.vampPct || 0) + ((ally.eq && ally.eq.wpn && ally.eq.wpn.reforgeVampPct) || 0);   // 💰 v3.8.34 奇岩重鑄「嗜血獠牙」：疊加武器本身既有吸血（若有）
-        if (_vampPctAlly > 0 && dmg > 0) ally.curHp = Math.min(ally.mhp || 1, (ally.curHp || 0) + Math.floor(dmg * _vampPctAlly));   // 🐉 嗜血者鎖鏈劍（傭兵）·v2.6.9 修：回復戰鬥HP(curHp) 非快照 hp
+        if (wpn && wpn.vampPct && dmg > 0) ally.curHp = Math.min(ally.mhp || 1, (ally.curHp || 0) + Math.floor(dmg * wpn.vampPct));   // 🐉 嗜血者鎖鏈劍（傭兵）·v2.6.9 修：回復戰鬥HP(curHp) 非快照 hp
         if (wpn && wpn.procHealFlat && dmg > 0 && Math.random() * 100 < wpn.procHealFlat.rate) { ally.curHp = Math.min(ally.mhp || 1, (ally.curHp || 0) + wpn.procHealFlat.hp); logCombat(`<span class="text-emerald-300 font-bold">【協力·${ally._allyName}·${wpn.n}】</span>恢復了 ${wpn.procHealFlat.hp} 點 HP。`, 'heal', 'mercenary'); }   // 🏺 v3.1.80 處刑人的護身斧（傭兵）：一般攻擊命中 3% 恢復 10 HP（鏡像玩家 js/04）
         if (t.curHp > 0 && !isRanged && wpn && (wpn.weakExpose || allyHasMastery(ally, 'k_weakness'))) {   // 🐉 弱點曝光（傭兵）：鎖鏈劍/弱點精通
             let _always = allyHasMastery(ally, 'k_chainblade') || allyHasMastery(ally, 'k_weakness');
