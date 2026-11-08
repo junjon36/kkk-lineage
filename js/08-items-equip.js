@@ -91,11 +91,20 @@ function gainItem(id, cnt=1, silent=false, forceNormal=false, affixOld=false, de
 
     let d = DB.items[id];
     
-    // 安全防護：若資料庫還沒設定 _b 祝福／_c 詛咒卷軸，退回給普通版
-    if (!d) {
-        id = id.replace('_b', '').replace('_c', '');
-        d = DB.items[id];
-    }
+// ==================== 這是最完美的 Production 最終版 ====================
+
+// 安全防護：若資料庫還沒設定 _b 祝福／_c 詛咒卷軸，退回給普通版
+if (!d) {
+    // 🔧 只在確實是 _b/_c 結尾時才剝除，絕不誤傷中間含有 _b 或 _c 的道具（如 crystal）
+    id = id.replace(/_[bc]$/, '');
+    d = DB.items[id];
+}
+
+// 🔧 保險：兩次查詢都找不到定義，直接擋下不生成幽靈道具（避免壞 id 混進存檔）
+if (!d) { 
+    console.warn('[gainItem] 找不到道具定義，已略過：', id); 
+    return null; 
+}
 
     // 🗡️ 裝備收集冊：獲得任何武器/防具/飾品(非箭矢)即登錄圖鑑（永久·只增不減）
     if (typeof registerEquipObtained === 'function') registerEquipObtained(id);
@@ -573,7 +582,7 @@ function useItem(u, silent = false, keepModal = false) {   // 🔌 加掛版補�
         return;
     }
 
-     // 🔧 靈魂之球：身上有「失去魔力的巴列斯魔杖」→ 兩者各消耗 1 個，獲得「巴列斯魔杖」；否則只顯示訊息、不消耗
+    // 🔧 靈魂之球：身上有「失去魔力的巴列斯魔杖」→ 兩者各消耗 1 個，獲得「巴列斯魔杖」；否則只顯示訊息、不消耗
     //   ・優先消耗「帶席琳套裝效果」的失去魔力魔杖；兌換出的巴列斯魔杖繼承相同套裝效果
     if (d.eff === 'soulorb') {
         if (silent) return;
@@ -1153,7 +1162,6 @@ function buyItem(id, qty) {
     // 箭 / 銀箭：一「份」= 2000，單價固定，qty 代表份數（🚫 v3.2.17 肉已隨舊項圈系統移除）
     let bundle = (id === 'wpn_5')        ? { unit: 100, amount: 2000, n: '箭',   suffix: '根' }
                : (id === 'wpn_22')       ? { unit: 200, amount: 2000, n: '銀箭', suffix: '根' }
-               : (id === 'wpn_30')       ? { unit: 300, amount: 2000, n: '米索莉箭', suffix: '根' }
                : null;
     if (bundle) {
         let cost = shopPrice(bundle.unit) * qty;
