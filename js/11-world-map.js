@@ -97,7 +97,7 @@ const MAP_REGIONS = [
         {v:'town_talking', t:'說話之島村莊'}, {v:'talking_island_port', t:'說話之島港口'}, {v:'talking_island', t:'說話之島周邊'},
         {v:'zone_13', t:'說話之島地監1樓'}, {v:'zone_14', t:'說話之島地監2樓'}
     ]},
-    { key: 'burningwillow', label: '燃柳村', castleCity: 'orc_fortress', castleAt: 2, maps: [
+    { key: 'burningwillow', label: '燃柳村', maps: [
         {v:'town_gludio', t:'燃柳村莊'}, {v:'elf_forest', t:'妖魔森林'},
         {v:'town_pirate_village', t:'海賊島村莊'}, {v:'pirate_wild', t:'海賊島周邊'}, {v:'pirate_dungeon', t:'海賊島地監'},
         {v:'elf_grave', t:'精靈墓穴'}, {v:'hidden_cave', t:'大洞穴隱遁者村莊地區'}
@@ -119,7 +119,7 @@ const MAP_REGIONS = [
         {v:'zone_34', t:'地下通道1樓'}, {v:'zone_35', t:'地下通道2樓'}, {v:'zone_36', t:'地下通道3樓'},
         {v:'eva_kingdom', t:'伊娃王國'}, {v:'fafurion_lair', t:'法利昂洞穴'}
     ]},
-    { key: 'giran', label: '奇岩', castleCity: 'giran', castleAt: 1, maps: [
+    { key: 'giran', label: '奇岩', maps: [
         {v:'town_giran', t:'奇岩城鎮'}, {v:'giran', t:'奇岩周邊'},
         {v:'zone_18', t:'奇岩地監1樓'}, {v:'zone_19', t:'奇岩地監2樓'}, {v:'zone_20', t:'奇岩地監3樓'}, {v:'zone_21', t:'奇岩地監4樓'}
     ]},
@@ -128,7 +128,7 @@ const MAP_REGIONS = [
         {v:'zone_26', t:'龍之谷地監1樓'}, {v:'zone_27', t:'龍之谷地監2樓'}, {v:'zone_28', t:'龍之谷地監3樓'}, {v:'zone_29', t:'龍之谷地監4樓'}, {v:'zone_30', t:'龍之谷地監5樓'}, {v:'zone_31', t:'龍之谷地監6樓'},
         {v:'antaras_lair', t:'安塔瑞斯棲息地'}, {v:'town_silent', t:'沉默洞穴'}, {v:'silent_outer', t:'沉默洞穴周邊'}
     ]},
-    { key: 'witon', label: '威頓', castleCity: 'dwarf_castle', castleAt: 1, maps: [
+    { key: 'witon', label: '威頓', maps: [
         {v:'town_witon', t:'威頓村莊'}, {v:'fire_dragon', t:'火龍窟'}, {v:'valakas_lair', t:'巴拉卡斯巢穴'}, {v:'town_behemoth', t:'貝希摩斯'}
     ]},
     { key: 'oren', label: '歐瑞', maps: [
@@ -137,7 +137,7 @@ const MAP_REGIONS = [
         {v:'crystal_cave1', t:'水晶洞穴1樓'}, {v:'crystal_cave2', t:'水晶洞穴2樓'}, {v:'crystal_cave3', t:'水晶洞穴3樓'},
         {v:'shadow_temple', t:'暗影神殿'}, {v:'town_hyperia', t:'希培利亞'}
     ]},
-    { key: 'aden', label: '亞丁', castleCity: 'aden', castleAt: 1, maps: [
+    { key: 'aden', label: '亞丁', maps: [
         {v:'town_aden', t:'亞丁城鎮'}, {v:'twilight_mt', t:'黃昏山脈'}, {v:'dream_island', t:'夢幻之島'}
     ]},
     { key: 'tower', label: '傲慢之塔', maps: [
@@ -166,7 +166,7 @@ function mapEntryOf(v) { for (let c in MAP_CATEGORIES) { let e = MAP_CATEGORIES[
 function mapRegionOf(v) {
     if (SIEGE_OUTER_INNER.includes(v)) return 'siege';
     if (CASTLE_EXTRA.includes(v)) return 'windwood';   // 🏰 風木地監→風木地區（攻城獲勝後開放）
-    for (let _ck in SIEGE_CITY) { if (SIEGE_CITY[_ck].castle === v) { let _reg = MAP_REGIONS.find(r => r.castleCity === _ck); return _reg ? _reg.key : _ck; } }   // 🏰 攻城獲勝城堡→所屬地區：查 MAP_REGIONS.castleCity 找實際掛靠的地區 key（多數城堡地區 key 與 SIEGE_CITY key 同名，但妖魔堡掛在燃柳村底下、key 不同名，故不能直接假設同名）
+    for (let _ck in SIEGE_CITY) { if (SIEGE_CITY[_ck].castle === v) return _ck; }   // 🏰 攻城獲勝城堡→所屬地區(地區 key 與 SIEGE_CITY key 同名：kent/windwood/heine)
     if (typeof v === 'string' && (v.startsWith('pride_f') || v === 'pride_climb')) return 'tower';   // 🗼 攀登中的樓層歸入傲慢之塔
     if (v === 'rift_battle') return 'rift';   // 🌀 時空裂痕戰場歸入時空裂痕
     for (let r of MAP_REGIONS) { if (r.maps.some(m => m.v === v)) return r.key; }
@@ -190,11 +190,7 @@ function regionHasVisible(rk) { return regionMapList(rk).some(m => !(m.classicHi
 const SIEGE_CITY = {
     kent:     { key:'kent',     name:'肯特城', outer:'kent_outer', outerName:'肯特外門區', inner:'kent_inner', innerName:'肯特內城', castle:'town_kent_castle',     castleName:'肯特城', gate:'肯特城門', tower:'肯特守護塔' },
     windwood: { key:'windwood', name:'風木城', outer:'ww_outer',   outerName:'風木外門區', inner:'ww_inner',   innerName:'風木內城', castle:'town_windwood_castle', castleName:'風木城', gate:'風木城門', tower:'風木守護塔' },
-    heine:    { key:'heine',    name:'海音城', outer:'heine_outer', outerName:'海音外門區', inner:'heine_inner', innerName:'海音內城', castle:'town_heine_castle', castleName:'海音城', gate:'海音城門', tower:'海音守護塔' },
-    giran:    { key:'giran',    name:'奇岩城', outer:'giran_outer', outerName:'奇岩外門區', inner:'giran_inner', innerName:'奇岩內城', castle:'town_giran_castle', castleName:'奇岩城', gate:'奇岩城門', tower:'奇岩守護塔' },
-    orc_fortress: { key:'orc_fortress', name:'妖魔堡', outer:'orc_outer', outerName:'妖魔堡外門區', inner:'orc_inner', innerName:'妖魔堡內城', castle:'town_orc_castle', castleName:'妖魔堡', gate:'妖魔堡門', tower:'妖魔堡守護塔' },
-    dwarf_castle: { key:'dwarf_castle', name:'侏儒城', outer:'dwarf_outer', outerName:'侏儒城外門區', inner:'dwarf_inner', innerName:'侏儒城內城', castle:'town_dwarf_castle', castleName:'侏儒城', gate:'侏儒城門', tower:'侏儒城守護塔' },
-    aden: { key:'aden', name:'亞丁城', outer:'aden_outer', outerName:'亞丁外門區', inner:'aden_inner', innerName:'亞丁內城', castle:'town_aden_castle', castleName:'亞丁城', gate:'亞丁城門', tower:'亞丁守護塔' }
+    heine:    { key:'heine',    name:'海音城', outer:'heine_outer', outerName:'海音外門區', inner:'heine_inner', innerName:'海音內城', castle:'town_heine_castle', castleName:'海音城', gate:'海音城門', tower:'海音守護塔' }
 };
 // 城堡所有權只會在角色／模式切換與攻城事件時改變。讀檔後首次使用查一次，
 // 宣戰與勝敗結算再由事件刷新；補跑及一般戰鬥不再定時解壓、解析血盟共用資料。
@@ -252,8 +248,8 @@ function victoryCityCfg() {
     let city = castleOwnerCity();
     return SIEGE_CITY[city] || SIEGE_CITY.kent;
 }   // 血盟同模式共用的永久城堡
-const SIEGE_OUTER_INNER = ['kent_outer', 'kent_inner', 'ww_outer', 'ww_inner', 'heine_outer', 'heine_inner', 'giran_outer', 'giran_inner', 'orc_outer', 'orc_inner', 'dwarf_outer', 'dwarf_inner', 'aden_outer', 'aden_inner'];
-const SIEGE_CASTLES = ['town_kent_castle', 'town_windwood_castle', 'town_heine_castle', 'town_giran_castle', 'town_orc_castle', 'town_dwarf_castle', 'town_aden_castle'];
+const SIEGE_OUTER_INNER = ['kent_outer', 'kent_inner', 'ww_outer', 'ww_inner', 'heine_outer', 'heine_inner'];
+const SIEGE_CASTLES = ['town_kent_castle', 'town_windwood_castle', 'town_heine_castle'];
 
 // 🏰 城堡護衛 v2（可招募協同角色·死亡30秒復活·血盟共用名冊）已移至 js/31-castle-guards.js（舊「承擔10%傷害」制 v3.7.96 移除）。
 const CASTLE_EXTRA = ['windwood_dungeon'];   // 🔧 風木地監歸入「城堡」分類（隨風木城一起，攻城獲勝後開放）
@@ -1763,22 +1759,6 @@ function interactNPC(npcId, townId) {
         renderCastleGuard(contentDiv, 'windwood');
     } else if (npc.id === 'npc_heine_guard') {
         renderCastleGuard(contentDiv, 'heine');
-    } else if (npc.id === 'npc_giran_guard_captain') {
-        renderCastleGuard(contentDiv, 'giran');
-    } else if (npc.id === 'npc_orc_guard_captain') {
-        renderCastleGuard(contentDiv, 'orc_fortress');
-    } else if (npc.id === 'npc_dwarf_guard_captain') {
-        renderCastleGuard(contentDiv, 'dwarf_castle');
-    } else if (npc.id === 'npc_aden_guard_captain') {
-        renderCastleGuard(contentDiv, 'aden');
-    } else if (npc.id === 'npc_reforge_master') {
-        if (typeof renderReforgeMasterUI === 'function') renderReforgeMasterUI(contentDiv);
-    } else if (npc.id === 'npc_blood_priestess') {
-        if (typeof renderBloodAltarUI === 'function') renderBloodAltarUI(contentDiv);
-    } else if (npc.id === 'npc_quality_master') {
-        if (typeof renderQualityUpgradeUI === 'function') renderQualityUpgradeUI(contentDiv);
-    } else if (npc.id === 'npc_relic_master') {
-        if (typeof renderRelicBreakthroughUI === 'function') renderRelicBreakthroughUI(contentDiv);
     } else if (npc.type === 'ally') {
         renderAllyNPC(contentDiv);
     } else if (npc.type === 'warehouse') {
@@ -1995,16 +1975,7 @@ const TOWN_NPC_SPOTS = {
     //   須凡=南側廣場展示桌旁｜哈金=拱廊西南側廣場（[80,56]實測落在拱門洞正中·柱間夾人→移出）｜傭兵公會=東南大廣場｜
     //   海音神官隊長=禮拜堂長椅前（神官↔禮拜堂）｜盟主=王座水池平台右側石地（階梯上方·避池避渠）｜
     //   帝倫=左側迴廊（水渠以西·避開雙立柱）｜末格叫賣=大廣場星紋旁。⚠️中央斜拱廊牆基線≈y=0.7(x−52)+38（x52→72）·牆面再往上約 10%，此帶全禁站。
-    town_heine_castle: [[52, 84], [76, 62], [68, 72], [66, 34], [42, 22], [42, 22], [27, 48], [66, 54]],
-    //   奇岩（沿用肯特內城背景圖·無專屬美術）：對應 npcs 順序＝朵林(重鑄·祭壇中央)／藍迪西(雜貨)／寶金(倉庫)／奇岩守衛隊長(護衛)／赫特(魔物追蹤)／依詩蒂(血盟)。
-    //   座位為沿用背景下的通用安全落點，尚未依實際美術逐點校正；如發現壓到牆面/柱子/家具，之後再依畫面微調。
-    town_giran_castle: [[48, 35], [22, 55], [74, 55], [50, 70], [30, 40], [68, 40]],
-    //   妖魔堡（沿用風木內城背景圖·無專屬美術）：對應 npcs 順序＝卡蓮(血祭·祭壇中央)／巴血(倉庫)／妖魔堡守衛隊長(護衛)／依詩蒂(血盟·沿用共用NPC)／赫特(魔物追蹤·沿用共用NPC)。
-    town_orc_castle: [[48, 35], [74, 55], [50, 70], [22, 55], [30, 40]],
-    //   侏儒城（沿用海音內城背景圖·無專屬美術）：對應 npcs 順序＝布倫(品質升階·祭壇中央)／巴血(倉庫)／侏儒城守衛隊長(護衛)／依詩蒂(血盟·沿用共用NPC)／赫特(魔物追蹤·沿用共用NPC)。
-    town_dwarf_castle: [[48, 35], [74, 55], [50, 70], [22, 55], [30, 40]],
-    //   亞丁城（沿用肯特內城背景圖·無專屬美術）：對應 npcs 順序＝突破大師(遺物突破·祭壇中央)／巴血(倉庫)／亞丁城守衛隊長(護衛)／依詩蒂(血盟·沿用共用NPC)／赫特(魔物追蹤·沿用共用NPC)。
-    town_aden_castle: [[48, 35], [74, 55], [50, 70], [22, 55], [30, 40]]
+    town_heine_castle: [[52, 84], [76, 62], [68, 72], [66, 34], [42, 22], [42, 22], [27, 48], [66, 54]]
 };
 // 🏴 叫賣玩家只會在這些安全區出現。獨立保留站位，避免在原始 NPC 格位用盡後回繞並貼近人物或落到場景物件上。
 const TOWN_WANDERING_BUYER_SPOTS = {
