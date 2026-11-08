@@ -573,7 +573,7 @@ function useItem(u, silent = false, keepModal = false) {   // 🔌 加掛版補�
         return;
     }
 
-    // 🔧 靈魂之球：身上有「失去魔力的巴列斯魔杖」→ 兩者各消耗 1 個，獲得「巴列斯魔杖」；否則只顯示訊息、不消耗
+     // 🔧 靈魂之球：身上有「失去魔力的巴列斯魔杖」→ 兩者各消耗 1 個，獲得「巴列斯魔杖」；否則只顯示訊息、不消耗
     //   ・優先消耗「帶席琳套裝效果」的失去魔力魔杖；兌換出的巴列斯魔杖繼承相同套裝效果
     if (d.eff === 'soulorb') {
         if (silent) return;
@@ -582,11 +582,49 @@ function useItem(u, silent = false, keepModal = false) {   // 🔌 加掛版補�
             let _wands = player.inv.filter(i => i.id === powerlessId && i.cnt > 0);
             if (!_wands.length) return false;
             let _wand = _wands.find(i => i.seteff) || _wands[0];   // 優先選有套裝效果者
+            
+            // 🌟 核心修改：精準讀取並繼承原本這把魔杖的所有詞綴與狀態，防止遺失
             let _seteff = _wand.seteff || false;
-            item.cnt--; if (item.cnt <= 0) player.inv = player.inv.filter(i => i.uid !== item.uid);   // 消耗靈魂之球 ×1
-            _wand.cnt--; if (_wand.cnt <= 0) player.inv = player.inv.filter(i => i.uid !== _wand.uid);   // 消耗失去魔力魔杖 ×1
+            let _bless  = _wand.bless  || false; // 繼承：祝福 / 詛咒
+            let _anc    = _wand.anc    || false; // 繼承：遠古 / 永恆 / 不朽 / 太初
+            let _attr   = _wand.attr   || false; // 繼承：屬性強化（火水風地五階）
+            let _lock   = _wand.lock   || false; // 繼承：防誤刪鎖定狀態
+            let _junk   = _wand.junk   || false; // 繼承：廢品標記
+
+            // 🔧 原本地方加上 // 保留：
+            // item.cnt--; if (item.cnt <= 0) player.inv = player.inv.filter(i => i.uid !== item.uid);   // 消耗靈魂之球 ×1
+            // _wand.cnt--; if (_wand.cnt <= 0) player.inv = player.inv.filter(i => i.uid !== _wand.uid);   // 消耗失去魔力魔杖 ×1
+
+            // 🔧 修正新實作：使用專案內置的 consume 統一安全扣除靈魂之球 ×1
+            consume(item);
+            
+            // 🔧 修正新實作：安全扣除失去魔力的魔杖 ×1（防堆疊誤刪 Bug）
+            _wand.cnt--; 
+            if (_wand.cnt <= 0) {
+                player.inv = player.inv.filter(i => i.uid !== _wand.uid);
+            } else {
+                player.inv = player.inv.map(i => i.uid === _wand.uid ? { ...i, cnt: _wand.cnt } : i);
+            }
+            
             let _tEn = 0;   // 🏛️ v3.0.83 傳統模式已取消：重獲魔力的魔杖恆 +0（沿用手動強化）
-            invAddOrStack({ id:resultId, uid:uid(), cnt:1, en:_tEn, bless:false, anc:false, attr:false, seteff:_seteff, lock:false, junk:false });
+            
+            // 🔧 原本地方加上 // 保留：
+            // invAddOrStack({ id:resultId, uid:uid(), cnt:1, en:_tEn, bless:false, anc:false, attr:false, seteff:_seteff, lock:false, junk:false });
+
+            // 🌟 修正新實作：將讀取到的詞綴變數帶入新物品中，讓屬性完美繼承
+            invAddOrStack({ 
+                id: resultId, 
+                uid: uid(), 
+                cnt: 1, 
+                en: _tEn, 
+                bless: _bless, 
+                anc: _anc, 
+                attr: _attr, 
+                seteff: _seteff, 
+                lock: _lock, 
+                junk: _junk 
+            });
+            
             logSys(`<span class="c-legend font-bold">靈魂之球與${powerlessName}發出強烈的銀色光芒！</span><span class="text-amber-200">你獲得了 ${_tEn>0?('+'+_tEn+' '):''}${resultName}${_seteff ? `（<span class="c-sherine font-bold">${_seteff}</span>）` : ''}！</span>`);
             renderTabs(); updateUI(); saveGame();
             if (!document.getElementById('item-modal').classList.contains('hidden')) closeModal();
