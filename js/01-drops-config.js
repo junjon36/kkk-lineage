@@ -409,11 +409,11 @@
         '遺忘之島巨大牛人': [['wpn_katana',30], ['wpn_greatsword',1], ['item_unknown_spear',0.1], ['wpn_taurus_axe',0.5], ['amr_plate',30], ['glv_glove',30], ['amu_str',2], ['acc_127',5], ['blt_body',1], ['new_item_157',30], ['new_item_158',30], ['new_item_159',10], ['scroll_weapon',30], ['scroll_armor',30], ['item_ancient_scroll',2.5], ['bk_bless_wpn',5], ['bk_berserk',5], ['bk_full_heal',5], ['bk_elf_blazewpn',5], ['bk_elf_stormshot',1], ['scroll_attr_earth', 1.8]],
         // ===== 🏛️ 隱藏狩獵區域（象牙塔系列）怪物掉落 =====
         '象牙塔石頭高崙': [['mat_golem_heart',0.1],['wpn_berserker',0.5],['new_item_151',1],['mem_golem',0.2]],
-        '象牙塔鋼鐵高崙': [['new_item_191',0.001],['new_item_180',100],['new_item_151',1],['mem_golem',0.2], ['mat_steel_chunk',10]],
-        '象牙塔活鎧甲': [['new_item_154',1],['bk_holy_barrier',0.03],['new_item_193',0.001], ['mat_moonlight_breath', 0.05]],
-        '象牙塔密密': [['wpn_33',1],['wpn_katana',0.3],['wpn_2hsword',1],['wpn_demon_sword',0.001],['wpn_greatsword',1],['wpn_demon_dual',0.01],['wpn_demon_claw',0.01],['wpn_demon_xbow',0.01],['arm_62',1],['arm_69',0.3],['arm_61',5],['arm_59',0.1],['amr_plate',2],['glv_demon',0.1],['bot_demon',0.1],['scroll_weapon',2],['scroll_armor',2],['bk_mummy_curse',3],['bk_holy_dash',1],['bk_invisible',0.1],['bk_meteor',0.01],['bk_abs_barrier',0.1],['bk_soul_up',0.1],['bk_elf_soul',1],['bk_elf_preciseshot',0.01]],
+        '象牙塔鋼鐵高崙': [['new_item_191',0.005],['new_item_180',100],['new_item_151',1],['mem_golem',0.2], ['mat_steel_chunk',10]],
+        '象牙塔活鎧甲': [['new_item_154',1],['bk_holy_barrier',0.03],['new_item_193',0.005], ['mat_moonlight_breath', 0.05]],
+        '象牙塔密密': [['wpn_33',1],['wpn_katana',0.3],['wpn_2hsword',1],['wpn_demon_sword',0.005],['wpn_greatsword',1],['wpn_demon_dual',0.01],['wpn_demon_claw',0.01],['wpn_demon_xbow',0.01],['arm_62',1],['arm_69',0.3],['arm_61',5],['arm_59',0.1],['amr_plate',2],['glv_demon',0.1],['bot_demon',0.1],['scroll_weapon',2],['scroll_armor',2],['bk_mummy_curse',3],['bk_holy_dash',1],['bk_invisible',0.1],['bk_meteor',0.01],['bk_abs_barrier',0.1],['bk_soul_up',0.1],['bk_elf_soul',1],['bk_elf_preciseshot',0.01]],
         '象牙塔長者': [['wpn_38',3],['acc_117',0.005],['acc_125',0.01],['acc_119',0.01]],
-        '象牙塔黑長者': [['wpn_witchwand',10],['acc_117',0.005],['acc_125',0.01],['acc_119',0.01],['arm_84',0.001],['arm_96',0.001]],
+        '象牙塔黑長者': [['wpn_witchwand',10],['acc_117',0.005],['acc_125',0.01],['acc_119',0.01],['arm_84',0.005],['arm_96',0.005]],
         '象牙塔奇美拉': [['bk_dark_poison',2],['mat_chimera_dragon',10],['mat_chimera_goat',10],['mat_chimera_lion',10],['mat_chimera_snake',10]],
         '象牙塔蛇女': [['acc_131',0.1],['scroll_weapon',0.5],['bk_weaken',0.5],['new_item_221',3]],
         '象牙塔黑魔法師': [['acc_demonbane',0.05],['scroll_weapon',0.5]],
@@ -425,7 +425,7 @@
         '哈汀之影': [['wpn_33',1],['wpn_katana',0.3],['new_item_151',10],['wpn_2hsword',0.5],['wpn_siruge',0.1],['wpn_demon_sword',0.02],['wpn_greatsword',1],['wpn_demon_dual',0.01],['wpn_demon_claw',0.01],['wpn_demon_xbow',0.01],['arm_62',0.3],['arm_69',1],['arm_61',1],['arm_59',0.3],['amr_plate',1],['item_hatin_diary',1],['scroll_armor',3],['scroll_weapon',3]],
         '象牙塔炎魔的奴隸': [['mat_black_mithril',1]],
         '象牙塔小惡魔': [['wpn_demon_axe',0.01],['mat_black_mithril',1]],
-        '象牙塔巴風特之影': [['mat_black_mithril',1],['wpn_powerless_baphomet',0.0001],['amr_baphomet',0.0001]],
+        '象牙塔巴風特之影': [['mat_black_mithril',1],['wpn_powerless_baphomet',0.005],['amr_baphomet',0.005]],
         '象牙塔翼魔': [['mat_black_mithril',1]],
         '象牙塔炎魔之影': [['mat_black_mithril',1], ['mat_black_blood',1]],   // 🩹 v3.1.79 稽核修：原孤兒 key「炎魔之影」（無此怪名·永不觸發）的黑色血痕掉落併入此表
         '象牙塔惡魔之影': [['mat_black_mithril',1],['wpn_demon_axe',0.1],['wpn_demon_scythe',0.0005],['wpn_demon_dual',0.01],['wpn_demon_claw',0.01],['wpn_demon_xbow',0.01]],
@@ -2052,11 +2052,11 @@ Object.assign(ITEM_WEIGHTS, {"魔法娃娃：雪人":1,"魔法娃娃：野狼寶
 // 🏺 遺物 第十四批（v3.3.0·14 件·單一怪物 0.0001% 掉落）
 Object.assign(ITEM_WEIGHTS, {"與歐林的定情之戒":3,"馴獸師的飼料袋":3,"地元素屏障":50,"水元素屏障":50,"火元素屏障":50,"風元素屏障":50,"兇殘惡鬼的毒牙":40,"殘暴骸骨的破片":40,"屍毒之針":50,"不定形的變幻劍":110,"巨大鱷魚的皮革盔甲":180,"妖鬼王的畸形背瘤":50,"傳說海賊的迷幻雙刀":30,"熔岩灼燒的雙拳":50});
 Object.assign(ITEM_WEIGHTS, {"魔力阻抗襯衫":15,"火精靈王的爆焰":150,"水精靈王的撫摸":40,"風精靈王的狂嘯":30,"地精靈王的抗拒":40,"純潔少女的憐愛":5,"破岩法師的秘術":30,"將軍愛用的握劍護腕":30});   // 🏺 遺物 第十五批重量（依規格）
-[['西瑪','relic_orin_ring'],['拉斯塔巴德馴獸師','relic_tamer_feedbag'],['地元素守護者','relic_earth_barrier'],['水元素守護者','relic_water_barrier'],['火元素守護者','relic_fire_barrier'],['風元素守護者','relic_wind_barrier'],['殘暴的食屍鬼','relic_ghoul_fang'],['殘暴的史巴托','relic_sparto_shard'],['受詛咒的妖魔殭屍','relic_corpse_needle'],['遺忘之島變形怪','relic_morph_blade'],['遺忘之島巨大鱷魚','relic_croc_leather'],['遺忘之島卡司特王','relic_kasta_hump'],['德雷克','relic_pirate_dual'],['熔岩高崙','relic_lava_fists']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['西瑪','relic_orin_ring'],['拉斯塔巴德馴獸師','relic_tamer_feedbag'],['地元素守護者','relic_earth_barrier'],['水元素守護者','relic_water_barrier'],['火元素守護者','relic_fire_barrier'],['風元素守護者','relic_wind_barrier'],['殘暴的食屍鬼','relic_ghoul_fang'],['殘暴的史巴托','relic_sparto_shard'],['受詛咒的妖魔殭屍','relic_corpse_needle'],['遺忘之島變形怪','relic_morph_blade'],['遺忘之島巨大鱷魚','relic_croc_leather'],['遺忘之島卡司特王','relic_kasta_hump'],['德雷克','relic_pirate_dual'],['熔岩高崙','relic_lava_fists']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 // 🏺 遺物 第十六批重量（依規格·寵物防具/武器不計負重故不列）
 Object.assign(ITEM_WEIGHTS, {"奴隸粗布衫":30,"地獄犬三頭釵":30,"巨魔的再生戒指":5,"烈焰巫師的正式長袍":30,"負重的堅忍巨臂":50,"笨重的鋼鐵石盾":250,"魔力泉源長靴":15,"暗黑的金屬棍棒":30,"召喚儀式的魔術布":10,"斷裂的昆蟲巨鉗":120,"魔力塑造的海洋水晶球":30,"燃燒殆盡的灰燼之拳":10,"死神的鐮刀破片":40,"巨靈的承諾":3,"被差遣的迷你闇精靈":10,"復仇者的十字弩弓":40});
 // 🏺 遺物 第十六批掉落（單一怪物 0.0001%；地獄奴隸＝聖地版 sanct_hellslave·同名鍵）
-[['受詛咒的馴獸師','relic_tamer_petarm'],['地獄奴隸','relic_slave_shirt'],['恐怖的地獄犬','relic_cerberus_pin'],['遺忘之島多羅','relic_troll_regen_ring'],['卡士柏','relic_flamemage_robe'],['底比斯 尖碑石奴(黑)','relic_burden_gauntlet'],['小惡魔','relic_imp_fang'],['恐怖的鋼鐵高崙','relic_iron_stone_shield'],['火焰之魔法師','relic_mana_spring_boots'],['暗黑萊肯','relic_dark_metal_club'],['炎魔的小惡魔','relic_summon_cloth'],['巨大守護螞蟻','relic_ant_pincer'],['馬庫爾','relic_ocean_orb'],['阿西塔基奧','relic_ash_fist'],['死神','relic_reaper_scythe'],['伊弗利特','relic_djinn_promise'],['黑暗精靈使','relic_mini_darkelf'],['黑暗復仇者','relic_avenger_crossbow']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['受詛咒的馴獸師','relic_tamer_petarm'],['地獄奴隸','relic_slave_shirt'],['恐怖的地獄犬','relic_cerberus_pin'],['遺忘之島多羅','relic_troll_regen_ring'],['卡士柏','relic_flamemage_robe'],['底比斯 尖碑石奴(黑)','relic_burden_gauntlet'],['小惡魔','relic_imp_fang'],['恐怖的鋼鐵高崙','relic_iron_stone_shield'],['火焰之魔法師','relic_mana_spring_boots'],['暗黑萊肯','relic_dark_metal_club'],['炎魔的小惡魔','relic_summon_cloth'],['巨大守護螞蟻','relic_ant_pincer'],['馬庫爾','relic_ocean_orb'],['阿西塔基奧','relic_ash_fist'],['死神','relic_reaper_scythe'],['伊弗利特','relic_djinn_promise'],['黑暗精靈使','relic_mini_darkelf'],['黑暗復仇者','relic_avenger_crossbow']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 // 🏺 遺物 第十七批重量（依規格）
 Object.assign(ITEM_WEIGHTS, {"重戰士的鏈鎖腰帶":150,"殘暴的骸骨意志之弓":40,"鬥士的決戰服裝":50,"幼龍的爪印":50,"滲透紅光的背後靈":5,"法師的護身短刀":30});
 // 🌅 日出之國 傳說／體力戒指／16 遺物重量（依《日出之國.md》規格）
@@ -2064,15 +2064,15 @@ Object.assign(ITEM_WEIGHTS, {"重戰士的鏈鎖腰帶":150,"殘暴的骸骨意�
 Object.assign(ITEM_WEIGHTS, {"滅魔的 金屬盔甲":170,"滅魔的 披肩":20,"滅魔的 鱗甲":120,"滅魔的 小藤甲":100});
 Object.assign(ITEM_WEIGHTS, {"陰陽師的扇子":15,"巨型骷髏之指環":30,"體力戒指":3,"沸騰蒸氣的鍋蓋":30,"鐮鼬的藥壺":5,"長首妖怪的圍巾":3,"老舊的百年唐傘":10,"沸騰蒸氣的巨釜":250,"鐮鼬的尾刃":120,"河童的尻子玉":10,"赤鬼的內褲":10,"青鬼的虎皮衫":100,"毒鵺的黑尾":120,"天狗的羽扇":50,"阿修羅的武神技":15,"九尾妖狐的怒火":15,"牛鬼的斷角":20,"牛鬼之子的黑戒":5,"巨大骷髏的頭骨":150});
 // 🏺 遺物 第十七批掉落（單一怪物 0.0001%）
-[['歐姆戰士','relic_heavy_belt'],['殘暴的骷髏神射手','relic_bone_bow'],['殘暴的骷髏鬥士','relic_fighter_armor'],['幼龍','relic_drake_pawprint'],['火焰之靈魂(紅)','relic_red_wraith'],['受詛咒的艾爾摩法師','relic_mage_dagger']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['歐姆戰士','relic_heavy_belt'],['殘暴的骷髏神射手','relic_bone_bow'],['殘暴的骷髏鬥士','relic_fighter_armor'],['幼龍','relic_drake_pawprint'],['火焰之靈魂(紅)','relic_red_wraith'],['受詛咒的艾爾摩法師','relic_mage_dagger']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 // 🏺 v3.6.44 遺物 第十九批掉落（15 件·各 0.0001%·「墳墓守護者」拆法師＋騎士兩隻同率）
-[['深淵弓箭手','relic_marksman_corset'],['地靈之主','relic_earthshatter_sword'],['風靈之主','relic_gale_fistblade'],['火靈之主','relic_hellfire_hammer'],['墳墓守護者法師','relic_pet_devotion'],['墳墓守護者騎士','relic_pet_devotion'],['血色術士','relic_blood_ritual_dagger'],['恐怖的伊弗利特','relic_genie_wishes'],['火焰之靈魂(藍)','relic_cold_blueflame'],['火焰烈炎獸','relic_scorch_greatsword'],['底比斯 斯芬克斯','relic_guardian_riddle'],['闇黑君王','relic_mana_array_boots'],['血騎士','relic_bloodknight_dual'],['骨龍','relic_cursed_egg'],['受詛咒的艾爾摩士兵','relic_elmo_spear'],['遺忘之島亞力安','relic_petrify_essence']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['深淵弓箭手','relic_marksman_corset'],['地靈之主','relic_earthshatter_sword'],['風靈之主','relic_gale_fistblade'],['火靈之主','relic_hellfire_hammer'],['墳墓守護者法師','relic_pet_devotion'],['墳墓守護者騎士','relic_pet_devotion'],['血色術士','relic_blood_ritual_dagger'],['恐怖的伊弗利特','relic_genie_wishes'],['火焰之靈魂(藍)','relic_cold_blueflame'],['火焰烈炎獸','relic_scorch_greatsword'],['底比斯 斯芬克斯','relic_guardian_riddle'],['闇黑君王','relic_mana_array_boots'],['血騎士','relic_bloodknight_dual'],['骨龍','relic_cursed_egg'],['受詛咒的艾爾摩士兵','relic_elmo_spear'],['遺忘之島亞力安','relic_petrify_essence']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"精銳射手的戰鬥束衣":50,"大地碎裂劍":120,"疾風拳刃":60,"業火鍛造鎚":120,"珍愛夥伴的執念":5,"血祭儀式短刀":30,"巨靈的三個願望":3,"凜冽的青色火炎":120,"烈炎燒灼的滾燙巨劍":150,"守護獸的難題":10,"魔力凝聚的法陣":15,"嗜血騎士的雙刀":30,"充滿詛咒氣息的蛋":5,"艾爾摩尖頭槍":120,"石化魔法的精髓":60});   // 🏺 遺物重量（依名稱·v3.6.44 +15 件·蛋未給重量暫定 5）
 // 🏺 v3.6.47 遺物 第二十批掉落（3 件·各 0.0001%）
-[['烈炎獸','relic_lava_nozzle'],['飛龍','relic_doom_egg'],['重裝歐姆戰士','relic_crusher_hammer']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['烈炎獸','relic_lava_nozzle'],['飛龍','relic_doom_egg'],['重裝歐姆戰士','relic_crusher_hammer']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"火山怪獸的熔岩噴嘴":120,"充滿厄運氣息的蛋":5,"重裝戰士的粉碎鎚":250});   // 🏺 遺物重量（依名稱·v3.6.47 +3 件·蛋未給重量比照詛咒蛋暫定 5）
 // 🥚 v3.6.62 遺物 第二十一批掉落（2 件·各 0.0001%）：破滅蛋／災厄蛋＝補完四蜥蜴取得管道
-[['遺忘之島飛龍','relic_doomsday_egg'],['深淵地靈','relic_calamity_egg']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+[['遺忘之島飛龍','relic_doomsday_egg'],['深淵地靈','relic_calamity_egg']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"充滿破滅氣息的蛋":5,"充滿災厄氣息的蛋":5});   // 🏺 遺物重量（依名稱·v3.6.62 +2 件·蛋未給重量比照前兩顆蛋暫定 5）
 // 🏺 v3.7.20 遺物 第二十二批掉落（18 件·各 0.0001%·push 追加安全·⚠️怪鍵=顯示名·含半形空格「底比斯 斯芬克斯(黑)」）
 [['遺忘之島巨大牛人','relic_maze_demon_glare'],['拉斯塔巴德近衛隊','relic_lining_chainshirt'],['冷酷冰原老虎','relic_icefang_armguard'],
@@ -2080,7 +2080,7 @@ Object.assign(ITEM_WEIGHTS, {"充滿破滅氣息的蛋":5,"充滿災厄氣息的
  ['黑長者','relic_elder_obsidian_orb'],['變形怪首領','relic_myriad_avatar'],['巴風特','relic_unsealed_baphomet_wand'],
  ['底比斯 斯芬克斯(黑)','relic_sphinx_black_wing'],['底比斯 尼荷斯','relic_overlook_thunder'],['受詛咒的艾爾摩將軍','relic_elmore_greatsword'],
  ['暗黑火焰戰士','relic_warrior_blackblade'],['遺忘之島獨眼巨人','relic_cyclops_dollsuit'],['西斯','relic_beheading_scythe'],
- ['曼波兔','relic_treasured_carrot'],['墳墓守護者騎士','relic_cross_tombshield'],['象牙塔紙人','relic_mage_scrap_note']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+ ['曼波兔','relic_treasured_carrot'],['墳墓守護者騎士','relic_cross_tombshield'],['象牙塔紙人','relic_mage_scrap_note']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"天使魔杖":20});   // 😇 v3.7.74 天使魔杖（單手魔杖·艾爾摩法師 0.01%）
 Object.assign(ITEM_WEIGHTS, {"迷宮惡魔的瞥視":130,"盔甲內襯鎖鏈衣":30,"冰牙虎臂甲":15,"無限火藥爆裂矢":10,"蜥蜴領主的王冠":15,"鋼鐵僧侶的錫杖":80,"長老的黑曜水晶球":30,"百變化身":15,"解除封印的巴風特魔杖":15,"人面獅身的漆黑羽翼":10,"俯瞰大地的雷電":5,"艾爾摩古戰場巨劍":150,"戰士的漆黑之劍":120,"獨眼巨人的手製娃娃裝":30,"斬首的巨大鐮刀":150,"珍藏的巨大胡蘿蔔":50,"十字墓碑盾":250,"古代法師的隨手小抄":3});   // 🏺 遺物重量（依名稱·v3.7.20 +18 件·規格書指定值）
 // 🏺 v3.7.52 遺物 第二十三批掉落（16 件·各 0.0001%·push 追加安全·⚠️怪鍵=顯示名·墮落的司祭一～五階各掉一件司祭苦行套裝）
@@ -2088,13 +2088,13 @@ Object.assign(ITEM_WEIGHTS, {"迷宮惡魔的瞥視":130,"盔甲內襯鎖鏈衣"
  ['長老隨從','relic_follower_cloak'],['火焰阿西塔基奧','relic_ashbeast_chain'],['炎魔的巴風特','relic_flame_baphomet_armor'],
  ['墮落的司祭(一階)','relic_priest_hood'],['墮落的司祭(二階)','relic_priest_gloves'],['墮落的司祭(三階)','relic_priest_collar'],
  ['墮落的司祭(四階)','relic_priest_robe'],['墮落的司祭(五階)','relic_priest_sandals'],['象牙塔鋼鐵高崙','relic_mageblade_knife'],
- ['卡魯塔','relic_ghost_teardrop'],['卡瑞','relic_true_dragonslayer'],['死亡騎士','relic_flame_dk_sword']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+ ['卡魯塔','relic_ghost_teardrop'],['卡瑞','relic_true_dragonslayer'],['死亡騎士','relic_flame_dk_sword']].forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"高崙的生命印記":5,"無數鋸齒的邪惡利牙":30,"克特之盾":150,"隨從的護身斗篷":10,"灰燼巨獸的束鏈":50,"烈焰焚燒的巴風特盔甲":30,"司祭的無眼頭飾":20,"司祭的斷指護手":10,"司祭的鎖喉頸圈":5,"司祭的腐爛長袍":30,"司祭的殘破草鞋":15,"專精劍術的魔劍士之刀":40,"受困幽魂的淚滴":5,"真‧屠龍劍":150,"烈焰的死亡騎士之劍":150});   // 🏺 遺物重量（依名稱·v3.7.52 +15 件·規格書指定值）
 [['底比斯 尼荷斯(藍)','relic_sky_god_avatar'],['死亡的司祭(思克巴)','relic_necro_book']]
-    .forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+    .forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"天空之神的化身":50,"死靈之書":10});   // 🏺 v3.8.12 遺物第二十四批重量
 [['混沌的司祭(飛翼)','relic_wing_chaos_blades'],['象牙塔果凍怪','relic_corrosive_jelly_skin'],['巴列斯','relic_goat_demon_feet'],['暗黑思克巴女皇','relic_succubus_queen_kiss'],['傲慢的潔尼斯女王','relic_spider_queen_footprints']]
-    .forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.001]));
+    .forEach(r => (MOB_DROPS[r[0]] = MOB_DROPS[r[0]] || []).push([r[1], 0.005]));
 Object.assign(ITEM_WEIGHTS, {"飛翼的混沌雙刀":30,"腐蝕的果凍外皮":10,"山羊惡魔的雙足":10,"斯克巴女皇的魅惑之吻":5,"蜘蛛女王的足跡":15});   // 🏺 v3.8.26 遺物第二十五批重量
 Object.assign(ITEM_WEIGHTS, {"古代地龍鱗盔甲":250,"古代水龍鱗盔甲":250,"古代火龍鱗盔甲":250,"古代風龍鱗盔甲":250,"安塔瑞斯的力量":150,"安塔瑞斯的魅惑":50,"安塔瑞斯的泉源":100,"安塔瑞斯的霸氣":100,"地龍之魔眼":10,"深紅之弩":25});   // 🐉 安塔瑞斯副本裝備重量（依名稱·v3.7.57·規格書指定值）；🕸️ v3.7.75 深紅之弩重量 100→25（依新規格）
 // 🐉 v3.7.57 侵蝕的安塔瑞斯巢穴掉落（依規格書·%·全新怪鍵無覆蓋疑慮；中間兩階變身不死不掉落·只有最終階結算）
