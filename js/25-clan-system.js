@@ -24,7 +24,7 @@ const CLAN_CLASS_NAMES = {
     royal:'王族', knight:'騎士', elf:'妖精', mage:'法師', dark:'黑暗妖精',
     dragon:'龍騎士', warrior:'戰士', illusion:'幻術士'
 };
-const CLAN_CASTLE_NAMES = { kent:'肯特城', windwood:'風木城', heine:'海音城', giran:'奇岩城', orc_fortress:'妖魔堡', dwarf_castle:'侏儒城', aden:'亞丁城' };
+const CLAN_CASTLE_NAMES = { kent:'肯特城', windwood:'風木城', heine:'海音城' };
 const NPC_CLAN_WORLD_COUNT = 20;
 const NPC_CLAN_MORALE_MAX = 1000;
 const NPC_CLAN_HATRED_MAX = 100;
@@ -242,7 +242,7 @@ function _npcClanDefaultWorld() {
         v:2,
         clans:[],
         memberships:{},
-        castleOwners:{ kent:null, windwood:null, heine:null, giran:null, orc_fortress:null, dwarf_castle:null, aden:null },
+        castleOwners:{ kent:null, windwood:null, heine:null },
         retiredNames:[],
         lastHateDecayAt:now,
         createdAt:now
@@ -327,7 +327,7 @@ function _npcClanNormalizeWorld(raw) {
             out.memberships[String(name).slice(0, 24)] = rec;
         });
     }
-    out.castleOwners = { kent:null, windwood:null, heine:null, giran:null, orc_fortress:null, dwarf_castle:null, aden:null };
+    out.castleOwners = { kent:null, windwood:null, heine:null };
     Object.keys(out.castleOwners).forEach(city => {
         let id = raw.castleOwners && raw.castleOwners[city] != null ? String(raw.castleOwners[city]).slice(0, 64) : null;
         out.castleOwners[city] = id && validIds.has(id) ? id : null;
@@ -567,7 +567,7 @@ function _npcClanEnsureWorldData(world, mode) {
     if (!Array.isArray(world.clans)) { world.clans = []; changed = true; }
     if (!world.memberships || typeof world.memberships !== 'object' || Array.isArray(world.memberships)) { world.memberships = {}; changed = true; }
     if (!world.castleOwners || typeof world.castleOwners !== 'object') {
-        world.castleOwners = { kent:null, windwood:null, heine:null, giran:null, orc_fortress:null, dwarf_castle:null, aden:null };
+        world.castleOwners = { kent:null, windwood:null, heine:null };
         changed = true;
     }
     if (!Array.isArray(world.retiredNames)) { world.retiredNames = []; changed = true; }
@@ -1040,28 +1040,17 @@ function npcClanAssignOpponent(entry, opts) {
             name = chosen.leader.n;
             rec = world.memberships[name];
         }
-if (!rec) {
-    rec = {
-        clanId:chosen ? chosen.id : null,
-        leader:false,
-        avatar:(typeof TROLL_CLASS_BY_AVATAR !== 'undefined' && TROLL_CLASS_BY_AVATAR[entry.avatar]) ? entry.avatar : '男戰士',
-        alignmentValue:typeof pvpClampAlignment === 'function' ? pvpClampAlignment(entry.alignmentValue) : Math.max(-32767, Math.min(32767, Math.round(Number(entry.alignmentValue) || 0))),
-        levelOffset:Math.max(-10, Math.min(10, Math.round(Number(entry.levelOffset) || 0))),
-        assignedAt:Date.now()
-    };
-    // 🔧 聊天NPC只用來即時顯示，不寫入存檔（避免memberships無限增長、存檔養到跳補跑進度條）
-    if (!opts.chatNPC) {
-        world.memberships[name] = rec;
-        // 🛡️ 保險上限：非盟主的一般成員超過500筆時，砍掉最舊的一批（就算日後哪個呼叫點忘了標 chatNPC，也不會再無限膨脹）
-        let normalKeys = Object.keys(world.memberships).filter(k => !world.memberships[k].leader);
-        if (normalKeys.length > 500) {
-            normalKeys
-                .sort((a, b) => (world.memberships[a].assignedAt || 0) - (world.memberships[b].assignedAt || 0))
-                .slice(0, normalKeys.length - 500)
-                .forEach(k => delete world.memberships[k]);
+        if (!rec) {
+            rec = {
+                clanId:chosen ? chosen.id : null,
+                leader:false,
+                avatar:(typeof TROLL_CLASS_BY_AVATAR !== 'undefined' && TROLL_CLASS_BY_AVATAR[entry.avatar]) ? entry.avatar : '男戰士',
+                alignmentValue:typeof pvpClampAlignment === 'function' ? pvpClampAlignment(entry.alignmentValue) : Math.max(-32767, Math.min(32767, Math.round(Number(entry.alignmentValue) || 0))),
+                levelOffset:Math.max(-10, Math.min(10, Math.round(Number(entry.levelOffset) || 0))),
+                assignedAt:Date.now()
+            };
+            world.memberships[name] = rec;
         }
-    }
-}
         let clan = rec.clanId ? _npcClanById(world, rec.clanId) : null;
         return {
             assignment:{
@@ -1533,7 +1522,7 @@ function clanScanRoles(mode) {
     if (_clanScanCache.roles && _clanScanCache.mode === mode && now - _clanScanCache.at < 3000) return _clanScanCache.roles.slice();
     let byId = {};
     if (typeof _roleReadSavePlayer === 'function') {
-        for (let slot = 1; slot <= 8; slot++) {
+        for (let slot = 1; slot <= SAVE_SLOT_MAX; slot++) {
             let p = _roleReadSavePlayer(slot);
             if (!p || !p.cls || clanModeKey(p) !== mode) continue;
             let id = clanRoleId(p);
