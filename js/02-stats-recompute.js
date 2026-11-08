@@ -1,4 +1,33 @@
 let _recomputingAlly = false;   // 🌟 v3.0.100 recompute 對象是否為傭兵（buildAlly/_allyLevelRecompute 設 true）：true→跳過「傭兵來源幻覺攻擊光環注入玩家」段（傭兵走 alliesTick 逐回合注入·勿於此重複）
+
+// ⚒️ v3.8.34 侏儒城品質升階：裝備本身固定數值套用品質倍率（普通×1.00／優良×1.50／精良×2.00／完美×3.00／大師×6.00），
+//   在讀進 recomputeStats 之前先放大，而非額外疊加新數值——裝備原本數值越高，品質升階的增幅越可觀。
+//   只白名單「核心戰鬥數值」欄位；exotic 的遺物專屬機制欄位（如 hitstunReduce/thorns/dmgReflect 等特殊 proc）刻意不縮放，避免產生難以預期的邊界行為。
+const QUALITY_TIER_BONUS = [0, 0.50, 1.00, 2.00, 5.00];   // index=item.qualityTier（0=普通~4=大師），單一真相：只有這裡一份，js/35 不重複定義
+const QUALITY_SCALE_FIELDS = [
+  'str','dex','con','int','wis','cha',
+  'dmgS','dmgL','dmgBonus','hit','meleeHit','rangedHit','meleeDmg','rangedDmg','meleeDmgPct','rangedDmgPct',
+  'mdmg','magicDmg','mpR','hpR','mhp','mmp','extraMp','extraDmg','extraHit',
+  'dr','ac','mr','er','mcrit','mcritDmg','rcrit'
+];   // ⚠️ atkSpdPct 刻意不列入：部分重型武器該欄位為負值(攻速懲罰)，盲目放大會讓懲罰更嚴重，跟「升階變強」的立意相反
+function qualityMultFor(instance) {
+  if (!instance) return 1;
+  let t = instance.qualityTier || 0;
+  return 1 + (QUALITY_TIER_BONUS[t] || 0);
+}
+// 傳入裝備「實例」，回傳一份「數值已依品質倍率放大」的範本淺拷貝；無品質加成時直接回傳原範本(零額外成本)。
+//   ⚠️ 絕不可就地修改 DB.items[id] 共用範本——同款武器的其他角色/其他把會一起中招（前車之鑑：ignHardSkin/reforgeVampPct）。
+function qualityScaledDef(instance) {
+  if (!instance || typeof DB === 'undefined' || !DB.items) return null;
+  let base = DB.items[instance.id];
+  if (!base) return base;
+  let mult = qualityMultFor(instance);
+  if (mult === 1) return base;
+  let scaled = Object.assign({}, base);
+  QUALITY_SCALE_FIELDS.forEach(f => { if (typeof base[f] === 'number') scaled[f] = Math.round(base[f] * mult); });   // 🔧 四捨五入到整數，一來消除浮點數運算誤差（3×1.12→3.3600000000000003），二來跟遊戲其他數值顯示慣例(命中/AC/傷害皆整數)一致
+  return scaled;
+}
+
 function mainPlayerHasEquippedEffect(flag) {
     if (!flag || typeof player === 'undefined' || !player || player._allyName || _recomputingAlly || !player.eq) return false;
     for (let slot in player.eq) {
@@ -44,6 +73,86 @@ function antHelperEarthResistanceBonus(value) {
 function antHelperGuardReductionPercent(magicResistance) {
     return Math.min(20, Math.floor((magicResistance || 0) * 0.10));
 }
+// 💰 奇岩重鑄詞綴：單一真相函式，武器／副手武器／防具飾品三處呼叫同一份邏輯（修正舊版「副手武器詞綴不生效」的缺陷）。
+//   d＝角色衍生屬性物件，p＝角色本體（mhp 走 p 不走 d），affixes＝該裝備實例的 item.reforgeAffixes 陣列，
+//   item＝該裝備「實例」本身（用來寫 hardSkinIgnorePct 等旗標；⚠️ 絕不可寫到 DB.items[id] 共用範本，否則會讓同款武器的其他角色/其他把也一併中招）。
+function applyReforgeAffixes(d, p, affixes, item) {
+    if (item) { item.hardSkinIgnorePct = 0; item.reforgeVampPct = 0; item.stunResist = 0; item.freezeResist = 0; item.paralyzeResist = 0; item.sleepResist = 0; }   // 每次重算先歸零，重鑄洗掉詞綴後才不會殘留舊效果
+    if (!affixes || !Array.isArray(affixes)) return;
+    affixes.forEach(aff => {
+        if (!aff || !aff.key) return;
+        if (aff.key === 'physDmgBonus') { d.meleeDmg += (aff.val || 0); d.rangedDmg += (aff.val || 0); }
+        else if (aff.key === 'physDmgPct') { d.meleeDmgPct += (aff.val || 0); d.rangedDmgPct += (aff.val || 0); }
+        else if (aff.key === 'strScaleDmg') { d.meleeDmg += Math.floor((d.str || 0) * (aff.coef || 1.0)); }
+        else if (aff.key === 'dexScaleDmg') { d.rangedDmg += Math.floor((d.dex || 0) * (aff.coef || 1.0)); }
+        else if (aff.key === 'physCritRate') { d.meleeCrit += (aff.val || 0); d.rangedCrit += (aff.val || 0); }
+        else if (aff.key === 'physCritDmg') { d.meleeCritDmg += (aff.val || 0); d.rangedCritDmg += (aff.val || 0); }
+        else if (aff.key === 'trueDmgPierce') { d.extraHit += (aff.val || 0); if (item) item.hardSkinIgnorePct = Math.max(0, Math.min(1, (aff.pierce || 0) / 100)); }
+        else if (aff.key === 'comboRate') { d.meleeCrit += Math.floor((aff.val || 0) / 2); }
+        else if (aff.key === 'vampPct') { d.vampPct = (d.vampPct || 0) + (aff.val || 0) / 100; if (item) item.reforgeVampPct = (item.reforgeVampPct || 0) + (aff.val || 0) / 100; }   // 💰 v3.8.34 d.vampPct 只供裝備說明欄顯示；戰鬥實際吸血讀的是武器本身欄位(wpn.vampPct)，故另外寫一份到裝備實例，見 js/03、js/04、js/06 三處揮擊點
+        else if (aff.key === 'magicDmg') { d.magicDmg += (aff.val || 0); }
+        else if (aff.key === 'dr') { d.dr += (aff.val || 0); }
+        else if (aff.key === 'ac') { d.ac -= (aff.val || 0); }
+        else if (aff.key === 'magicDr') { d.resNone = (d.resNone || 0) + (aff.val || 0); }   // 🛡️ 魔法傷害減免（走無屬性抗性 resNone，同 effResistPct 遞減公式；不是命中/迴避型的 mr，避免混淆）
+        else if (aff.key === 'er') { d.er += (aff.val || 0); }
+        else if (aff.key === 'mhp') { p.mhp += (aff.val || 0); }
+        else if (aff.key === 'stunResist') {
+            // 💰 v3.8.34 「磐石意志」擴大為暈眩/凍結/麻痺/沉睡四合一抗性。
+            //   ⚠️ 遊戲判定抵抗率的地方（playerStatusResisted）讀的是「裝備實例自身欄位」(item[resF])，不是這裡的 d.xxx 彙總值——
+            //   d.xxx 純粹只供「能力」分頁顯示用，兩者都要寫，缺一邊會變成「面板看得到、戰鬥沒生效」或「戰鬥有效、面板看不到」。
+            d.stunResist = (d.stunResist || 0) + (aff.val || 0);
+            d.freezeResist = (d.freezeResist || 0) + (aff.val || 0);
+            d.paralyzeResist = (d.paralyzeResist || 0) + (aff.val || 0);
+            d.sleepResist = (d.sleepResist || 0) + (aff.val || 0);
+            if (item) {
+                item.stunResist = (item.stunResist || 0) + (aff.val || 0);
+                item.freezeResist = (item.freezeResist || 0) + (aff.val || 0);
+                item.paralyzeResist = (item.paralyzeResist || 0) + (aff.val || 0);
+                item.sleepResist = (item.sleepResist || 0) + (aff.val || 0);
+            }
+        }
+        else if (aff.key === 'goldDrop') { d.goldDropBonus = (d.goldDropBonus || 0) + (aff.val || 0); }
+        else if (aff.key === 'expGain') { d.expGainBonus = (d.expGainBonus || 0) + (aff.val || 0); }
+        else if (aff.key === 'dropRate') { d.dropRateBonus = (d.dropRateBonus || 0) + (aff.val || 0); }
+        else if (aff.key === 'allStats') { d.str += (aff.val || 0); d.dex += (aff.val || 0); d.con += (aff.val || 0); d.int += (aff.val || 0); d.wis += (aff.val || 0); d.cha += (aff.val || 0); }
+    });
+}
+// 👑 亞丁城遺物突破（武器）：固定傷害%加成，不走詞綴系統（見 js/36 RELIC_WEAPON_STAR_BONUS）。
+function applyRelicWeaponBonus(d, item) {
+    if (!item || !item.relicStar) return;
+    if (typeof RELIC_WEAPON_STAR_BONUS === 'undefined') return;
+    let bonus = RELIC_WEAPON_STAR_BONUS[Math.min(item.relicStar, RELIC_WEAPON_STAR_BONUS.length - 1)] || 0;
+    if (!bonus) return;
+    d.meleeDmgPct += bonus * 100;
+    d.rangedDmgPct += bonus * 100;
+}
+// 👑 亞丁城遺物突破（防具／飾品）：套用該遺物綁定的隨機詞綴（見 js/36 RELIC_AFFIX_POOLS）。星級 0 或尚未綁定詞綴時直接跳過。
+function applyRelicAffix(d, item) {
+    if (!item || !item.relicStar || !item.relicAffixKey) return;
+    if (typeof RELIC_AFFIX_POOLS === 'undefined') return;
+    let affDef = (RELIC_AFFIX_POOLS.armor || []).find(a => a.key === item.relicAffixKey) || (RELIC_AFFIX_POOLS.accessory || []).find(a => a.key === item.relicAffixKey);
+    if (!affDef) return;
+    let v = affDef.val[Math.min(item.relicStar, affDef.val.length) - 1] || 0;
+    if (!v) return;
+    switch (item.relicAffixKey) {
+        case 'physAtk': d.meleeDmg += v; d.rangedDmg += v; break;
+        case 'magicAtk': d.magicDmg += v; break;
+        case 'str': d.str += v; break;
+        case 'dex': d.dex += v; break;
+        case 'con': d.con += v; break;
+        case 'int': d.int += v; break;
+        case 'wis': d.wis += v; break;
+        case 'cha': d.cha += v; break;
+        case 'mpR': d.mpR = (d.mpR || 0) + v; break;
+        case 'hpR': d.hpR = (d.hpR || 0) + v; break;
+        case 'resNone': d.resNone = (d.resNone || 0) + v; break;
+        case 'atkSpdPct': d.atkSpdPct = (d.atkSpdPct || 0) + v; break;
+        case 'meleeCrit': d.meleeCrit += v; d.rangedCrit += v; break;
+        case 'magicCrit': d.magicCrit += v; break;
+        case 'meleeCritDmg': d.meleeCritDmg += v; d.rangedCritDmg += v; break;
+        case 'magicCritDmg': d.magicCritDmg += v; break;
+    }
+}
 function recomputeStats() {
     let p = player, d = p.d, b = p.base, a = p.alloc;
     if (typeof p.lv === 'number') p.lv = Math.max(1, Math.min(100, Math.floor(p.lv) || 1));   // 🛡️ 等級硬夾 [1,100]：即時中和「改 player.lv」的外掛，避免職業成長值被放大
@@ -59,7 +168,7 @@ function recomputeStats() {
     d.cha = (b.cha || 0) + (a.cha || 0) + (pn.cha||0);   // 魅力：第六屬性（配點＋萬能藥本就≤60；裝備／buff 可突破 60）
 
     d.ac = 10; d.er = 0; d.dr = 0;
-    d.meleeDmg = 0; d.meleeHit = 0; d.meleeCrit = 0;
+    d.meleeDmg = 0; d.meleeHit = 0; d.meleeCrit = 0; d.meleeDmgPct = 0;
     d.crushDr = 0; d.meleeHaste = 0; d.atkSpdPct = 0;   // 🏺 遺物 第二批：受重擊減傷% / 裝近戰武器攻速% / 通用攻速%
     d.hpRegenFaster = 0; d.noEvade = false;   // 🏺 遺物 第十六批：巨魔的再生戒指（HP恢復間隔縮短秒數）／笨重的鋼鐵石盾（無法迴避）
     d.critDmgLowHp = null;   // 🏺 遺物 第十七批：鬥士的決戰服裝（HP<N 時近爆傷+add）
@@ -76,7 +185,7 @@ function recomputeStats() {
     d.dmgReflect = 0;        // 🏺 遺物 魅魔女皇的誘惑：受一般攻擊 N% 機率反射相同傷害且免疫該次（js/04 受擊路徑）
     d.fullHpMpHalf = false;  // 🏺 遺物 巫師的黑暗魔導書：滿血時技能 MP 減半（v3.2.39 稽核修：補歸零——原本卸下後永久殘留）
     d.eleWpnMult = null;     // 🏺 遺物 四之牙臂甲：裝備對應屬性武器時一般攻擊傷害 ×mult（{ele,mult}·js/03 getPhysicalDmg＋js/06 傭兵攻擊）
-    d.rangedDmg = 0; d.rangedHit = 0; d.rangedCrit = 0;
+    d.rangedDmg = 0; d.rangedHit = 0; d.rangedCrit = 0; d.rangedDmgPct = 0;
     d.extraDmg = 0; d.extraHit = 0; d.equipExtraAtk = 0;   // 🐉 d.equipExtraAtk：裝備授予的額外一般攻擊次數（龍鱗臂甲）
     d.magicDmg = 0; d.magicHit = 0; d.magicCrit = 0; d.extraMp = 0; d.mpReduce = 0;
     let _baseCritDmg = (p.cls === 'dark') ? 120 : 70;   // 🔧 黑暗妖精基礎爆擊傷害 120%（其餘職業 70%）；裝備/精通等加成於其上疊加
@@ -90,11 +199,13 @@ function recomputeStats() {
     // ===== Phase 1：先把所有「屬性(STR/DEX/INT/CON/WIS)」來源加總完畢 =====
     // 【修正】裝備與增益提供的屬性，必須在換算戰鬥數值「之前」全部計入，
     //         否則屬性數字會變，但近/遠/魔法傷害·命中·爆擊·AC·ER·HP·MP 不會跟著變。
-    if (p.eq.wpn) { let w = DB.items[p.eq.wpn.id]; if (w.str) d.str += w.str; if (w.dex) d.dex += w.dex; if (w.int) d.int += w.int; if (w.con) d.con += w.con; if (w.wis) d.wis += w.wis; if (w.cha) d.cha += w.cha; }   // 🔧 與防具迴圈一致讀取六項屬性（含魅力 cha）
+    //if (p.eq.wpn) { let w = DB.items[p.eq.wpn.id]; if (w.str) d.str += w.str; if (w.dex) d.dex += w.dex; if (w.int) d.int += w.int; if (w.con) d.con += w.con; if (w.wis) d.wis += w.wis; if (w.cha) d.cha += w.cha; }   // 🔧 與防具迴圈一致讀取六項屬性（含魅力 cha）
+    if (p.eq.wpn) { let w = qualityScaledDef(p.eq.wpn); if (w.str) d.str += w.str; if (w.dex) d.dex += w.dex; if (w.int) d.int += w.int; if (w.con) d.con += w.con; if (w.wis) d.wis += w.wis; if (w.cha) d.cha += w.cha; }   // 🔧 與防具迴圈一致讀取六項屬性（含魅力 cha）
     for (let k in p.eq) {
         let e = p.eq[k];
         if (!e || k === 'wpn') continue;
-        let ed = DB.items[e.id];
+        //let ed = DB.items[e.id];
+        let ed = qualityScaledDef(e);
         if (ed.str) d.str += ed.str;
         if (ed.dex) d.dex += ed.dex;
         if (ed.int) d.int += ed.int;
@@ -138,7 +249,7 @@ function recomputeStats() {
     }
     // 🪆 魔法娃娃全收集：裝備收集冊 doll 部位全收集(50 隻) → 六維各 +1（提前套用→吃進 AC/HP/MP/近遠魔傷害/命中/爆擊等衍生值；受下方 100 上限夾擠）。
     //    收集判定走 player.equipDex(共用桶)；傭兵經 buildAlly/_allyLevelRecompute 換身（player 暫指向傭兵）時借用隊長共用桶，同樣吃到此加成。label 由 js/16 EQUIP_CAT_BONUS.doll 顯示。
-    if (typeof equipCatComplete === 'function' && equipCatComplete('doll')) { d.str += 3; d.dex += 3; d.con += 3; d.int += 3; d.wis += 3; d.cha += 3; }
+    if (typeof equipCatComplete === 'function' && equipCatComplete('doll')) { d.str += 1; d.dex += 1; d.con += 1; d.int += 1; d.wis += 1; d.cha += 1; }
 
     // 🏺 v3.6.44 巨靈的三個願望（六維類願望）：掃裝備實體 gw 的 str1/dex1/int1/wis1/con1/cha1（非六維願望於防具迴圈套用·置於上限夾擠前）
     if (p.eq) { for (let _gk in p.eq) { let _ge = p.eq[_gk]; if (_ge && _ge.gw && Array.isArray(_ge.gw)) _ge.gw.forEach(w => { if (w === 'str1') d.str += 1; else if (w === 'dex1') d.dex += 1; else if (w === 'int1') d.int += 1; else if (w === 'wis1') d.wis += 1; else if (w === 'con1') d.con += 1; else if (w === 'cha1') d.cha += 1; }); } }
@@ -170,7 +281,7 @@ function recomputeStats() {
     // 職業基礎 MR 與 等級成長
     if (p.cls === 'knight') {
         d.mr = 5;
-        d.ac -= Math.floor(p.lv / 5);          // 每提升6 AC-1
+        d.ac -= Math.floor(p.lv / 5);          // 每提升5 AC-1
         d.mr += Math.floor(p.lv / 10);         // 每提升12 MR+1
         d.meleeDmg += Math.floor(p.lv / 4);    // 每提升4 近距離傷害+1
         d.rangedDmg += Math.floor(p.lv / 10);  // 每提升10 遠距離傷害+1
@@ -261,7 +372,7 @@ function recomputeStats() {
         let c = Math.max(1, Math.ceil(baseMp * (1 - d.mpReduce / 100)));
         if (p._setApprentice5 && p.mp < p.mmp * 0.3) c = Math.max(1, Math.ceil(c / 2));   // 🔮 學徒 5/5：MP 低於最大值 30% 時，所有技能耗魔減半
         if (d.fullHpMpHalf) { let _hpNow = (p.curHp != null) ? p.curHp : p.hp; if (_hpNow >= (p.mhp || 1)) c = Math.max(1, Math.ceil(c / 2)); }   // 🏺 v3.1.80 巫師的黑暗魔導書：滿血時技能消耗 MP 減半（玩家 p.hp／傭兵 p.curHp·recompute 共用）
-        if (p.mastery === 'i_mana') c *= 1;   // 🔮 魔力精通：所有技能MP消耗加倍（與 MP 上限加倍配套）
+        if (p.mastery === 'i_mana') c *= 1.5;   // 🔮 魔力精通：所有技能MP消耗加倍（與 MP 上限加倍配套）
         return c;
     };
 
@@ -285,9 +396,12 @@ function recomputeStats() {
     // ===== Phase 3：非屬性加成（武器傷害 / 裝備防禦 / 套裝 / 增益 / 變身） =====
     // 武器：依遠近距離分別計入（w.str 已於 Phase 1 計入屬性）
     if (p.eq.wpn) {
-        let w = DB.items[p.eq.wpn.id];
+        //let w = DB.items[p.eq.wpn.id];
+        let w = qualityScaledDef(p.eq.wpn);
         let isRanged = !!w.ranged;
         let _enW = enhanceWpnBonus(p.eq.wpn.en);   // 🔧 武器強化固定加成（傷害每階+1延伸到+20、命中+1~+10後依表續加）
+        // 👑 亞丁城遺物突破：武器類遺物固定傷害%加成（見 js/36 RELIC_WEAPON_STAR_BONUS）
+        applyRelicWeaponBonus(d, p.eq.wpn);
         // 武器自身固定傷害/命中：只加武器本身的攻擊類型（近戰武器→近距離、遠程武器→遠距離）
         if (isRanged) { d.rangedDmg += (w.dmgBonus||0); d.rangedHit += (w.hit||0); }
         else { d.meleeDmg += (w.dmgBonus||0); d.meleeHit += (w.hit||0); }
@@ -327,7 +441,8 @@ function recomputeStats() {
         // 🔥 屬性詞綴（v3.0.77 五階制）：額外傷害+N、額外魔法點數+N（N=1/3/5/7/9·ATTR_AFFIX js/08）；一般攻擊轉屬性走 getWpnEle/elementCounterMult
         let _wAtt = getAttrAffix(p.eq.wpn.attr);
         if (_wAtt) { d.extraDmg += _wAtt.dmg; d.extraMp += _wAtt.mp; }
-
+        // 💰 奇岩重鑄詞綴（主手武器）
+        applyReforgeAffixes(d, p, p.eq.wpn.reforgeAffixes, p.eq.wpn);
     }
 
     // ⚔️ 迅猛雙斧副手武器：祝福/遠古/屬性比照主武器計入 global d（與其他裝備一致疊加；玩家＋傭兵 buildAlly 換身共用本函式）。剋制屬性仍走 getPhysicalDmg 副手揮擊（用 offwpn 自身屬性）
@@ -335,6 +450,8 @@ function recomputeStats() {
         applyBlessStats(d, p.eq.offwpn.bless, 'wpn'); applyAncStats(d, p.eq.offwpn.anc, 'wpn');
         let _oAtt = getAttrAffix(p.eq.offwpn.attr);
         if (_oAtt) { d.extraDmg += _oAtt.dmg; d.extraMp += _oAtt.mp; }   // 🔥 副手屬性詞綴：額外傷害/魔法點數
+        applyReforgeAffixes(d, p, p.eq.offwpn.reforgeAffixes, p.eq.offwpn);   // 💰 奇岩重鑄詞綴（副手武器；修正舊版遺漏）
+        applyRelicWeaponBonus(d, p.eq.offwpn);   // 👑 亞丁城遺物突破（副手武器，同一份邏輯不重複）
     }
 
     let setCheck = {}, _setSeen = {};
@@ -343,7 +460,8 @@ function recomputeStats() {
     for (let k in p.eq) {
         let e = p.eq[k];
         if (!e || k === 'wpn' || k === 'offwpn') continue;   // ⚔️ offwpn=副手武器：不走防具/飾品加成（只作第二攻擊來源，stats 不重複計）
-        let ed = DB.items[e.id];
+        //let ed = DB.items[e.id];
+        let ed = qualityScaledDef(e);
         d.ac -= (ed.ac||0);   // 基礎 AC（防具/飾品皆套用）
         if (ed.type === 'arm' && !ed.armguard) d.ac -= enhanceArmAc(e.en);   // 🔧 防具強化AC（+11~+15分段；🛡️ 臂甲不吃此AC，強化改為加 HP）
         else if (ed.type === 'acc') {   // 🔧 飾品強化（上限+5）：戒指 每+1 AC-1；項鍊 每+1 MR+3；腰帶 每+1 負重上限+20（於負重系統計算）
@@ -373,6 +491,8 @@ d.mr += (baseMr + bonusMr);
         if(ed.rangedHit) d.rangedHit += ed.rangedHit;
         if(ed.meleeDmg)  d.meleeDmg  += ed.meleeDmg;
         if(ed.rangedDmg) d.rangedDmg += ed.rangedDmg;
+        if(ed.meleeDmgPct)  d.meleeDmgPct  += ed.meleeDmgPct;
+        if(ed.rangedDmgPct) d.rangedDmgPct += ed.rangedDmgPct;
         if(ed.extraHit)  d.extraHit  += ed.extraHit;          // 🐉 裝備額外命中（龍鱗臂甲 +2）
         if(ed.extraDmg)  d.extraDmg  += ed.extraDmg;          // 🐉 裝備額外傷害
         if(ed.magicHit)  d.magicHit  += ed.magicHit;          // 🪆 裝備固定魔法命中（魔法娃娃：墮落/巴風特）
@@ -428,6 +548,8 @@ d.mr += (baseMr + bonusMr);
         // 祝福的：防具→AC-1、傷害減免+1；飾品→AC-1、MR+1
         applyBlessStats(d, e.bless, (ed.slot==='ring'||ed.slot==='amulet'||ed.slot==='belt'||ed.slot==='ear') ? 'acc' : 'arm');   // 祝福的/詛咒的
         applyAncStats(d, e.anc, (ed.slot==='ring'||ed.slot==='amulet'||ed.slot==='belt'||ed.slot==='ear') ? 'acc' : 'arm');   // 遠古系變體能力
+        applyReforgeAffixes(d, p, e.reforgeAffixes, e);   // 💰 奇岩重鑄詞綴（防具／飾品；wpn 與 offwpn 已於上方各自處理，此迴圈已排除兩者不會重複計）
+        applyRelicAffix(d, e);   // 👑 亞丁城遺物突破（防具／飾品；wpn 與 offwpn 已於上方各自處理）
         // 🔥 v3.0.77 屬性詞綴改版：只能存在於武器（額外傷害/魔法點數，於上方武器區塊計入）；舊防具/飾品屬性詞綴（元素抗性+MR）已廢除並由 loadGame 清除
         if(ed.set && !_setSeen[e.id]) { _setSeen[e.id] = true; setCheck[ed.set] = (setCheck[ed.set]||0) + 1; }   // 🔧 以「不重複物品」計件：兩枚同款戒指只算 1 件，杜絕灌水湊套裝
         
@@ -451,8 +573,15 @@ d.mr += (baseMr + bonusMr);
         }
     }
     
+    // 🆕 物理職業基礎%傷害補強（縮小與幻術士奇古獸「繞過命中/迴避」的輸出差距，法師/幻術士本身走魔法輸出不補）
+    const PHYS_BASE_DMG_PCT = 10;   // 🔧 調校鈕：可依平衡需求調整
+    if (p.cls !== 'mage' && p.cls !== 'illusion') {
+        d.meleeDmgPct  += PHYS_BASE_DMG_PCT;
+        d.rangedDmgPct += PHYS_BASE_DMG_PCT;
+    }
+    
     // 騎士／王族／戰士：背包中持有的魔法頭盔也授予技能（擁有即可、不需裝備；背包與裝備都沒有對應頭盔時技能才會消失）
-    if (p.cls === 'knight' || p.cls === 'royal' || p.cls === 'warrior' || p.cls === 'dark' || p.cls === 'dragon' || p.cls === 'illusion') {
+    if (p.cls === 'knight' || p.cls === 'royal' || p.cls === 'warrior') {
         (p.inv || []).forEach(it => {
             let _gd = DB.items[it.id];
             if (_gd && _gd.grantSkills && !_gd.grantSkillsEquipOnly) {
