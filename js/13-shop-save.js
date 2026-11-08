@@ -14,6 +14,14 @@ const SPECIAL_AREA_BG = {   // 特殊地圖：逐張對應背景
     ww_inner: 'assets/area/1920x1080/風木內城.jpg',
     heine_outer: 'assets/area/1920x1080/海音外門區.jpg',
     heine_inner: 'assets/area/1920x1080/海音內城.jpg',
+    giran_outer: 'assets/area/1920x1080/肯特外門區.jpg',   // 🏰 奇岩攻城戰：尚無專屬美術，沿用肯特外門區/內城圖（比照原設計說明）
+    giran_inner: 'assets/area/1920x1080/肯特內城.jpg',
+    orc_outer: 'assets/area/1920x1080/風木外門區.jpg',   // 🏰 妖魔堡攻城戰：尚無專屬美術，沿用風木外門區/內城圖（刻意與奇岩不同，避免兩座城視覺重複）
+    orc_inner: 'assets/area/1920x1080/風木內城.jpg',
+    dwarf_outer: 'assets/area/1920x1080/海音外門區.jpg',   // 🏰 侏儒城攻城戰：尚無專屬美術，沿用海音外門區/內城圖（刻意與奇岩/妖魔堡不同）
+    dwarf_inner: 'assets/area/1920x1080/海音內城.jpg',
+    aden_outer: 'assets/area/1920x1080/肯特外門區.jpg',   // 🏰 亞丁城攻城戰：尚無專屬美術，沿用肯特外門區/內城圖
+    aden_inner: 'assets/area/1920x1080/肯特內城.jpg',
     rift_battle: 'assets/area/1920x1080/時空裂痕戰場.jpg',
     desert: 'assets/area/沙漠.jpg',   // 🏜️ 沙漠（野外·專屬背景·完整路徑直接用）
     // 🆕 新狩獵區背景（皆 area-fit 沙漠格式·需 1920×580 條狀圖·放 assets/area/）：
@@ -97,7 +105,7 @@ function upgradeAreaPath(path) { if (!path) return path; let m = /^assets\/area\
 // 🏙️ v3.2.80 安全區逐城 1920×1080 背景(town id → 檔名)：命名差異(村/村莊/城鎮/full-width括號)以此表精準對應；未列者(攻城城堡 town_*_castle 等)退回舊 assets/background 通用圖
 const TOWN_BG_1920 = {
     town_aden: '亞丁城鎮', town_giran: '奇岩城鎮', town_heine: '海音城鎮', town_oren: '歐瑞村莊',
-    town_kent_castle: '肯特城', town_windwood_castle: '風木城', town_heine_castle: '海音城',
+    town_kent_castle: '肯特城', town_windwood_castle: '風木城', town_heine_castle: '海音城', town_giran_castle: '肯特城', town_orc_castle: '風木城', town_dwarf_castle: '海音城', town_aden_castle: '風木城',   // 🏰 亞丁城安全區：尚無專屬美術，沿用風木城安全區圖
     town_elf: '妖精森林村莊', town_talking: '說話之島村莊', town_gludio: '燃柳村莊', town_gludin: '古魯丁村莊', town_witon: '威頓村莊',
     town_hyperia: '希培利亞', town_silver_knight: '銀騎士村莊', town_ivory_tower: '象牙塔（1~3樓）',
     town_sherine: '席琳神殿', town_silent: '沉默洞穴', town_behemoth: '貝希摩斯', town_flame_audience: '炎魔謁見所',
