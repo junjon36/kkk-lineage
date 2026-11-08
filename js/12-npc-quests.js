@@ -990,7 +990,7 @@ function renderDarkTrial(div, npcId) {
 const TRIAL_50_CFG = {
     knight: { npc: '迪嘉勒廷',
         stages: [ {id:'item_dantes_letter', nm:'丹特斯的召書', cnt:1, hint:'擊殺黑暗妖精將軍'},
-                  {id:'item_elf_whisper', nm:'精靈的私語', cnt:1, hint:'擊殺精靈墓穴的怪物'} ],
+                  {id:'item_elf_whisper', nm:'精靈的私語', cnt:10, hint:'擊殺精靈墓穴的怪物'} ],
         exMat:'mat_flame_sword', exMatNm:'炎魔之劍', rewards:[{id:'wpn_blackflame_sword',nm:'黑燄之劍'},{id:'bot_courage',nm:'勇氣長靴'}] },
     elf: { npc: '迪嘉勒廷',
         stages: [ {id:'item_ancient_book', nm:'古代黑妖之秘笈', cnt:1, hint:'擊殺巨大兵蟻'},
