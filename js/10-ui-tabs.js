@@ -556,10 +556,10 @@ function renderSkillSelects() {
     let buffHtml = '';
     let sortedSkills = [...player.skills].filter(s => DB.skills[s] && !DB.skills[s].procOnly).sort((a,b) => DB.skills[a].tier - DB.skills[b].tier);   // 🏛️ 過濾 procOnly（惡魔之吻等純武器proc：不顯示於施放下拉/勾選）
     
-    sortedSkills.forEach(sid => {
+     sortedSkills.forEach(sid => {
         let sk = DB.skills[sid];
         let skillDisplayName = (sid === 'sk_zombie' && player.eq && player.eq.shield && player.eq.shield.id === 'relic_necro_book') ? '骷髏復生' : sk.n;
-        let isAvail = true;
+                let isAvail = true;
         let __granted = player.grantedSkills && player.grantedSkills.includes(sid);
         let needLv = skillReqLv(sk, sid);   // 🏅 集中化：含魔導精通特例
         if(!__granted && (needLv === undefined || player.lv < needLv)) isAvail = false;
@@ -972,7 +972,7 @@ function dedupeGeneratedTooltipEffects(effects, d, options) {
 const GENIE_WISH_LABEL = { hp60: 'HP +60', mp30: 'MP +30', md3: '近距離傷害 +3', rd3: '遠距離傷害 +3', mdmg2: '魔法傷害 +2', sp6: '額外魔法點數 +6', hpr10: 'HP 自然恢復量 +10', mpr5: 'MP 自然恢復量 +5', dr3: '傷害減免 +3', ac3: 'AC -3', mr6: 'MR +6', str1: '力量 +1', dex1: '敏捷 +1', int1: '智力 +1', wis1: '精神 +1', con1: '體質 +1', cha1: '魅力 +1' };   // 🏺 v3.6.44 巨靈的三個願望
 function buildItemDescHTML(item) {
     let d = DB.items[item.id];
-    let d = (typeof qualityScaledDef === 'function') ? (qualityScaledDef(item) || DB.items[item.id]) : DB.items[item.id];   // ⚒️ v3.8.34 侏儒城品質升階：讀品質倍率放大後的範本，說明欄數值才會跟著升階變化（純數值淺拷貝，type/remains/n 等非數值欄位不受影響）
+    if(!d) return '';
     let desc = tooltipItemDescription(d, item.id);
     if (item.gw && Array.isArray(item.gw)) desc += `<br><span class="text-amber-300 font-bold">✦ 許下的三個願望：</span><br>` + item.gw.map(w => `<span class="text-amber-200">・${GENIE_WISH_LABEL[w] || w}</span>`).join('<br>');   // 🏺 v3.6.44 巨靈的三個願望：顯示實體抽定的能力
     // 🔮 席琳套裝效果：寫在資訊欄（綠色標題＋淺綠加成說明），不冠在名稱前
@@ -997,8 +997,6 @@ function buildItemDescHTML(item) {
         if(d.dmgBonus !== undefined) desc += ` / ${dmgLabel}: ${formatBonus(d.dmgBonus)}`; // 加上 !== undefined 避免 0 被漏掉
         
         if(d.mdmg) desc += ` / 魔法傷害: ${formatBonus(d.mdmg)}`;
-        if(d.meleeDmgPct)  desc += ` / 近距離傷害: ${formatBonus(d.meleeDmgPct)}%`;
-        if(d.rangedDmgPct) desc += ` / 遠距離傷害: ${formatBonus(d.rangedDmgPct)}%`;
         // ⚔️ 攻擊速度依「職業性別×武器種類」查表顯示（以目前角色為準；戰士雙持另依雙斧速度）
         if (typeof atkSpdApm === 'function' && typeof player !== 'undefined' && player && player.cls && atkSpdFamily(item.id)) {   // 箭矢等非揮擊武器不顯示
             let _apm = atkSpdApm(player, item.id);
@@ -1049,8 +1047,6 @@ function buildItemDescHTML(item) {
         if(d.rangedHit) desc += ` / 遠距離命中: ${formatBonus(d.rangedHit)}`;
         if(d.meleeDmg)  desc += ` / 近距離傷害: ${formatBonus(d.meleeDmg)}`;
         if(d.rangedDmg) desc += ` / 遠距離傷害: ${formatBonus(d.rangedDmg)}`;
-        if(d.meleeDmgPct)  desc += ` / 近距離傷害: ${formatBonus(d.meleeDmgPct)}%`;
-        if(d.rangedDmgPct) desc += ` / 遠距離傷害: ${formatBonus(d.rangedDmgPct)}%`;
         // 🦴 寵物武器（之牙）：依強化等級(+N，上限+5)動態顯示該寵物加成（每強化+1 → 傷害+1、命中+1）
         if(d.petDmg || d.petHit) {
             let en = capEn(item.en, d);
@@ -1265,43 +1261,6 @@ function buildItemDescHTML(item) {
         let _attrMagicStars = '★'.repeat(_attrMagic.star);
         let _attrMagicRateNote = _attrMagic.star > 1 ? `（基礎 ${_attrMagic.baseRate}% × ${_attrMagic.star}）` : '';
         desc += `<br><span class="text-yellow-300 font-bold">${_attrMagicStars} 屬性附加魔法：攻擊時 ${_attrMagic.rate}% 機率觸發${_attrMagicName}${_attrMagicRateNote}。</span>`;
-    }
-
-    // ⚒️ 侏儒城品質升階：顯示目前品質階級（讓玩家知道數值變化的來源，同一份顏色/名稱表讀 window.QUALITY_TIER_NAMES/COLORS，跟侏儒鍛造壇 UI 共用不重複維護）
-    if (item.qualityTier && item.qualityTier > 0) {
-        let _qNames = (typeof QUALITY_TIER_NAMES !== 'undefined') ? QUALITY_TIER_NAMES : ['普通', '優良', '精良', '完美', '大師'];
-        let _qColors = (typeof QUALITY_TIER_COLORS !== 'undefined') ? QUALITY_TIER_COLORS : ['#9ca3af', '#4ade80', '#60a5fa', '#c084fc', '#fbbf24'];
-        let _qt = Math.min(item.qualityTier, _qNames.length - 1);
-        desc += `<br><span style="color:${_qColors[_qt]};font-weight:bold;">⚒️ 品質：【${_qNames[_qt]}】（裝備自身數值已套用品質倍率）</span>`;
-    }
-
-    // 👑 亞丁城遺物突破：武器顯示固定傷害%，防具/飾品顯示綁定的隨機詞綴（讀 window.RELIC_AFFIX_POOLS/RELIC_WEAPON_STAR_BONUS/RELIC_STAR_LABELS/COLORS，跟遺物突破 UI 共用不重複維護）
-    if (item.relicStar && item.relicStar > 0) {
-        let _rLabels = (typeof RELIC_STAR_LABELS !== 'undefined') ? RELIC_STAR_LABELS : ['未突破', '★☆☆', '★★☆', '★★★'];
-        let _rColors = (typeof RELIC_STAR_COLORS !== 'undefined') ? RELIC_STAR_COLORS : ['#9ca3af', '#4ade80', '#60a5fa', '#fbbf24'];
-        let _rt = Math.min(item.relicStar, _rLabels.length - 1);
-        let _affLine;
-        if (d.type === 'wpn') {
-            let _wBonus = (typeof RELIC_WEAPON_STAR_BONUS !== 'undefined') ? RELIC_WEAPON_STAR_BONUS : [0, 0.25, 0.50, 1.00];
-            _affLine = `武器傷害 +${Math.round((_wBonus[_rt] || 0) * 100)}%`;
-        } else {
-            let _affDef = null;
-            if (typeof RELIC_AFFIX_POOLS !== 'undefined' && item.relicAffixKey) {
-                _affDef = (RELIC_AFFIX_POOLS.armor || []).find(a => a.key === item.relicAffixKey) || (RELIC_AFFIX_POOLS.accessory || []).find(a => a.key === item.relicAffixKey);
-            }
-            _affLine = _affDef ? `${_affDef.name} ${_affDef.text(_affDef.val[_rt - 1])}` : '（未綁定詞綴，需至亞丁遺物祭壇重置）';
-        }
-        desc += `<br><span style="color:${_rColors[_rt]};font-weight:bold;">👑 遺物突破：${_rLabels[_rt]} — ${_affLine}</span>`;
-    }
-
-    // 💰 奇岩重鑄詞綴：顯示重鑄大師洗出的隨機詞綴（顏色/標籤讀 window.REFORGE_TIER_META 單一真相，跟重鑄所 UI 共用同一份，不再各自維護）
-    if (item.reforgeAffixes && Array.isArray(item.reforgeAffixes) && item.reforgeAffixes.length) {
-        let _tierMeta = (typeof REFORGE_TIER_META !== 'undefined') ? REFORGE_TIER_META : {};
-        let _lines = item.reforgeAffixes.filter(a => a && a.key).map(a => {
-            let _m = _tierMeta[a.tier] || { color: '#4ade80', badge: '' };
-            return `<span style="color:${_m.color};">・${a.name} ${_m.badge}：${a.text}</span>`;
-        }).join('<br>');
-        if (_lines) desc += `<br><span class="text-amber-300 font-bold">✨ 奇岩重鑄詞綴：</span><br>${_lines}`;
     }
 
     // 🪄 授予技能（力量／敏捷／治癒魔法頭盔等 grantSkills 裝備）：列出可額外使用的魔法。
