@@ -2311,6 +2311,7 @@ function getPhysicalDmg(diceStr, target, wpn, arrowData, forceHeavy, forceHit, f
     //   原本 _cw 恆取主手 → 副手自己的 crush／heavyRatePct／ignHardSkin／cleave 全部失效，反而借用主手的（名實不符）。
     //   與同函式 _swingId(下方) 及 wpnEnFinalMult(wpnInst||主手) 同源，也與傭兵側 allyStrikeRoll 的 opts.wpnInst 對齊。
     let _cw = (wpnInst && DB.items[wpnInst.id]) || (player.eq.wpn && DB.items[player.eq.wpn.id]);
+    let _cwInst = wpnInst || player.eq.wpn;   // 💰 v3.8.34 奇岩重鑄「開天闢地」：忽視硬皮%寫在裝備實例(item.hardSkinIgnorePct)，不是共用範本(DB.items)，故 _cw 之外要另外查實例
     let isCrush = !!(_cw && _cw.eff === 'crush');
     let rollHit = roll(1, 20);
     let hit = false, heavy = false, graze = false, crush = false;
@@ -2344,7 +2345,9 @@ function getPhysicalDmg(diceStr, target, wpn, arrowData, forceHeavy, forceHit, f
     // [（遠/近距離傷害 x 爆擊係數） + 額外傷害 - 敵人傷害減免]，計算過程最低為1
     let nearFar = weaponRoll + dmgBonus;
     let _ignHard = !!(_cw && _cw.ignHardSkin);   // 🗡️ 貫穿（暗黑十字弓）：攻擊無視硬皮額外減傷（主攻擊與連射皆走本函式 → 一併涵蓋）
-    let inner = Math.floor(nearFar * critMult) + player.d.extraDmg - ((target.dr || 0) + (_ignHard ? 0 : mobHardSkin(target)) + ((target._siegeDrEnd > state.ticks) ? (target._siegeDrVal || 0) : 0));   // 堅固防護：怪物傷害減免；🔧 硬皮：額外物理減傷（貫穿時不扣）
+    let _ignHardPct = _ignHard ? 1 : Math.max(0, Math.min(1, (_cwInst && _cwInst.hardSkinIgnorePct) || 0));   // 💰 v3.8.34 奇岩重鑄「開天闢地」：依品階給比例忽視(T3~T0=4%~100%)，非全有全無；暗黑十字弓的範本旗標仍視為 100%
+    let inner = Math.floor(nearFar * critMult) + player.d.extraDmg - ((target.dr || 0) + Math.floor(mobHardSkin(target) * (1 - _ignHardPct)) + ((target._siegeDrEnd > state.ticks) ? (target._siegeDrVal || 0) : 0));   // 堅固防護：怪物傷害減免；🔧 硬皮：額外物理減傷（貫穿時依比例扣減）
+//    let inner = Math.floor(nearFar * critMult) + player.d.extraDmg - ((target.dr || 0) + (_ignHard ? 0 : mobHardSkin(target)) + ((target._siegeDrEnd > state.ticks) ? (target._siegeDrVal || 0) : 0));   // 堅固防護：怪物傷害減免；🔧 硬皮：額外物理減傷（貫穿時不扣）
     inner = Math.max(1, inner);
     if (target._trauma && target._trauma.until > state.ticks) inner += (target._trauma.dmg || 5) * (target._trauma.s || 1);   // 🏺 v3.7.20 創傷（戰士的漆黑之劍）：目標受到的所有物理傷害 +5×層數（玩家物理樞紐·傭兵側 allyStrikeRoll 另掛）
 
@@ -2392,9 +2395,15 @@ function getPhysicalDmg(diceStr, target, wpn, arrowData, forceHeavy, forceHit, f
     if (heavy && player.mastery === 'k_cleave' && _cw && _cw.eff === 'cleave') _outDmg = Math.max(1, Math.floor(_outDmg * 1.5));   // 🏅 切割精通：觸發重擊時傷害 ×1.5
     if (heavy && _cw && _cw.heavyMult) _outDmg = Math.max(1, Math.floor(_outDmg * _cw.heavyMult));   // 🏺 遺物 鎧甲守衛的笨重巨劍：觸發重擊時傷害 ×heavyMult（1.5）
     if (heavy && _cw && _cw.heavyBonusDmg) _outDmg += _cw.heavyBonusDmg;   // 🌅 遺物 牛鬼的斷角：觸發重擊時額外傷害 +N（固定值·倍率後加算）
+    { let _wpnPct = (_cw && (isRanged ? _cw.rangedDmgPct : _cw.meleeDmgPct)) || 0;   // 🔧 武器本身的%加成要另外讀：js/02 裝備加總迴圈故意skip wpn欄位（武器逐次揮擊時單獨算），不會進player.d
+      let _strPct = isRanged ? 0 : Math.floor((player.d.str || 0) / 10) * 10;   // 💪 近距離傷害：力量每 10 點額外 +10%（遠程不吃力量加成）
+      let _dmgPctMul = 1 + (((isRanged ? player.d.rangedDmgPct : player.d.meleeDmgPct) || 0) + _wpnPct + _strPct) / 100;
+      if (_dmgPctMul !== 1) _outDmg = Math.max(1, Math.floor(_outDmg * _dmgPctMul)); }   // 🏺 遺物系統：近/遠距離傷害百分比加成（meleeDmgPct/rangedDmgPct，武器+防具/飾品/基礎補強+力量 合併）
     if (player.statuses && player.statuses.broken > 0) _outDmg = Math.max(1, Math.floor(_outDmg * 0.8));   // 🐍 壞物術（特產易碎泥偶自傷）：期間玩家一般攻擊物理傷害 -20%
     let _dualX2 = false;   // ⚔️ 雙刀內建特性：一般攻擊命中(非擦傷) 5% 機率最終傷害×2（🎮 經典模式停用）
-    if (_natRoll && !graze && !player.classicMode && getWeaponTags(_swingId).includes('雙刀') && Math.random() < 0.05) { _dualX2 = true; _outDmg = Math.max(1, _outDmg * 2); }
+//    if (_natRoll && !graze && !player.classicMode && getWeaponTags(_swingId).includes('雙刀') && Math.random() < 0.05) { _dualX2 = true; _outDmg = Math.max(1, _outDmg * 2); }
+    let _chkId = (wpn && wpn.id) || _swingId; // 🛡️ v3.8.34 安全修正：優先抓真實武器ID傳給標籤函式
+    if (!graze && !player.classicMode && getWeaponTags(_chkId).includes('雙刀') && Math.random() < 0.05) { _dualX2 = true; _outDmg = Math.max(1, _outDmg * 2); } // 🎯 新寫法：只要非擦傷(!graze)即代表完全命中，完美剔除擦傷並回歸正常抽獎
     if (_natRoll && !graze && _cw && _cw.dblStrikeRate && Math.random() * 100 < _cw.dblStrikeRate) { _dualX2 = true; _outDmg = Math.max(1, _outDmg * 2); }   // 🏺 v3.7.20 艾爾摩古戰場巨劍：一般攻擊 3% 機率 2 倍傷害（沿用 dualx2 標記顯示「×2」·非一般限定=經典亦觸發）
     markBossPhysicalHit(target);
     return { dmg: _outDmg, hit: true, heavy: heavy, crit: isCrit, graze: graze, crush: crush, dualx2: _dualX2, ranged: isRanged };
@@ -2675,15 +2684,22 @@ function hurtRapidfireProc() {
 // 🛡️ 臂甲判定：臂甲裝在副手(slot:shield)但帶 armguard 旗標；反擊/居合用它區分「真盾牌 vs 臂甲」
 function _isArmguard(shRef) { return !!(shRef && DB.items[shRef.id] && DB.items[shRef.id].armguard); }
 // ===== 反擊（單手劍）：對攻擊者打一次「必定命中、必定非重擊、傷害 50%」的一般攻擊；只打攻擊者，不轉移 =====
-function procCounter(t) {
+function procCounter(t, atkDmg) {
     if (player.classicMode) return;   // 🎮 經典模式：停用反擊
     if (!t || t.curHp <= 0) return;
     let wpn = player.eq.wpn ? DB.items[player.eq.wpn.id] : null;
     let dice = wpn ? (t.s === 'L' ? wpn.dmgL : wpn.dmgS) : 2;
     let res = getPhysicalDmg(dice, t, wpn, null, false, true, false, hasMastery('k_counter'));   // forceHeavy=false, forceHit=true；🏅 反擊精通：必定爆擊
     let dmg = Math.max(1, Math.floor(res.dmg * (hasMastery('k_counter') ? 0.65 : 0.50)));   // 傷害 50%（🏅 反擊精通：+30% → 65%）
-    if (player.buffs.sk_counter_barrier > 0 && player.eq.wpn && getWeaponTags(player.eq.wpn.id).includes('單手劍')) dmg = Math.max(1, Math.floor(dmg * 2));   // 🔧 反擊屏障：原生反擊(單手劍)武器最終傷害×2
-    if (player.buffs.sk_counter_barrier > 0 && wpn && wpn.counterBarrierX2) dmg = Math.max(1, Math.floor(dmg * 2));   // 🏺 資深殘兵的重型劍：反擊屏障觸發的反擊傷害×2（雙手劍靠此旗標·非單手劍原生）
+//    if (player.buffs.sk_counter_barrier > 0 && player.eq.wpn && getWeaponTags(player.eq.wpn.id).includes('單手劍')) dmg = Math.max(1, Math.floor(dmg * 2));   // 🔧 反擊屏障：原生反擊(單手劍)武器最終傷害×2
+//    if (player.buffs.sk_counter_barrier > 0 && wpn && wpn.counterBarrierX2) dmg = Math.max(1, Math.floor(dmg * 2));   // 🏺 資深殘兵的重型劍：反擊屏障觸發的反擊傷害×2（雙手劍靠此旗標·非單手劍原生）
+    if (player.buffs.sk_counter_barrier > 0 && atkDmg > 0) {   // 🥋 反擊屏障・借力打力：傷害改為「借到的攻擊力 × 玩家力量」，取代下方原本的×2
+        let _strMul = 1 + Math.floor((player.d.str || 0) / 10) * 0.2;   // 🥋 力量每 10 點 +20%（力量100 → ×3.0）
+        dmg = Math.max(1, Math.floor(atkDmg * _strMul));
+    } else {
+        if (player.buffs.sk_counter_barrier > 0 && player.eq.wpn && getWeaponTags(player.eq.wpn.id).includes('單手劍')) dmg = Math.max(1, Math.floor(dmg * 2));   // 🔧 反擊屏障：原生反擊(單手劍)武器最終傷害×2
+        if (player.buffs.sk_counter_barrier > 0 && wpn && wpn.counterBarrierX2) dmg = Math.max(1, Math.floor(dmg * 2));   // 🏺 資深殘兵的重型劍：反擊屏障觸發的反擊傷害×2（雙手劍靠此旗標·非單手劍原生）
+    }
     t.curHp -= dmg;
     t.justHit = getWpnEle(player.eq.wpn, wpn);
     mobWake(t);
@@ -2760,7 +2776,9 @@ function dragonExtraAttackProc(target) {
         // 🏅 鎖刃精通：「每層弱點曝光最終傷害+10%」僅屠宰者生效，額外攻擊不套用
         t.curHp -= res.dmg; t.justHit = getWpnEle(player.eq.wpn, wpn); mobWake(t);
         if (t.curHp > 0) { wearHardSkin(t, player.eq.wpn ? player.eq.wpn.id : null, res.heavy, false, true, player.classicMode); applyPlayerWeakExpose(t); }
-        if (wpn.vampPct && res.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.floor(res.dmg * wpn.vampPct));
+//        if (wpn.vampPct && res.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.floor(res.dmg * wpn.vampPct));
+        let _vampPct = (wpn.vampPct || 0) + ((player.eq.wpn && player.eq.wpn.reforgeVampPct) || 0);   // 💰 v3.8.34 奇岩重鑄「嗜血獠牙」：疊加武器本身既有吸血（若有）
+        if (_vampPct > 0 && res.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.floor(res.dmg * _vampPct));
         let mark = (res.heavy && res.crit) ? '會心一擊' : (res.crit ? '爆擊' : (res.heavy ? '重擊' : ''));
         logCombat(`<span class="font-bold" style="color:#fbbf24;text-shadow:0 0 6px #d97706;">【額外攻擊】</span>追擊 <span class="${getMobColor(t.lv)}">${t.n}</span>，造成 ${res.dmg} 點傷害${mark ? '（' + mark + '!）' : ''}。`, 'player');
         let idx = mapState.mobs.findIndex(m => m && m.uid === t.uid);
