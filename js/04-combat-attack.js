@@ -13,24 +13,12 @@ function playerAttack() {
     let _sureHit = !!player._darkEvadeSure;   // 🔧 迴避精通：下一次一般攻擊必中
     let _sureCrit = !!player._darkEvadeCrit;   // 🔧 迴避精通：迴避後下一次一般攻擊必定爆擊
     if (_sureHit || _sureCrit) { player._darkEvadeSure = false; player._darkEvadeCrit = false; }
-    let _dodgeGraze = false;   // 🆕 基礎擦傷保底：被迴避時是否改判為擦傷（縮小與幻術士奇古獸「繞過命中/迴避」的落差）
-    const BASE_DODGE_GRAZE_PCT = 25;   // 🔧 調校鈕：被迴避時改判擦傷的基礎機率%，可依平衡需求調整
     if (!_sureHit && target.er && roll(1, 100) <= target.er) {
-        //logCombat(`<span class="${getMobColor(target.lv)}">${target.n}</span> 成功迴避攻擊。`, 'evade');
-        //wandLightArrowProc(target);
-        //magicStrikeProc(target);
-        //weaponSpellProc(target, false);   // 🔧 附魔施放：一般武器照常判定；procOnHit 武器（長老的雷電能量）被迴避時不觸發
-        //return;
-       if (Math.random() * 100 < BASE_DODGE_GRAZE_PCT) {
-            _dodgeGraze = true;   // 改判擦傷，不return，繼續往下走一般攻擊流程（傷害會在getPhysicalDmg內打對折）
-        } else {
-            logCombat(`<span class="${getMobColor(target.lv)}">${target.n}</span> 成功迴避攻擊。`, 'evade');
-            wandLightArrowProc(target);
-            magicStrikeProc(target);
-            weaponSpellProc(target, false);   // 🔧 附魔施放：一般武器照常判定；procOnHit 武器（長老的雷電能量）被迴避時不觸發
-            equipmentSpellProc(target, false);   // 🏺 非武器裝備特效（同上，被迴避不算命中）
-            return;
-        }
+        logCombat(`<span class="${getMobColor(target.lv)}">${target.n}</span> 成功迴避攻擊。`, 'evade');
+        wandLightArrowProc(target);
+        magicStrikeProc(target);
+        weaponSpellProc(target, false);   // 🔧 附魔施放：一般武器照常判定；procOnHit 武器（長老的雷電能量）被迴避時不觸發
+        return;
     }
 
     let wpn = player.eq.wpn ? DB.items[player.eq.wpn.id] : null;
@@ -51,7 +39,7 @@ function playerAttack() {
         }
     
     let _mainHardSkin = mobHardSkin(target);   // 🏅 穿透精通用：主目標被扣減前的硬皮值
-    let result = getPhysicalDmg(dice, target, wpn, arrowData, false, false, _sureHit, _sureCrit, null, _dodgeGraze);   // 🔧 迴避精通：必中且必爆；🆕 _dodgeGraze：被迴避改判擦傷
+    let result = getPhysicalDmg(dice, target, wpn, arrowData, false, false, _sureHit, _sureCrit);   // 🔧 迴避精通：必中且必爆
     if (!result.hit && wpn && wpn.missGrazeRate && Math.random() * 100 < wpn.missGrazeRate) result = getPhysicalDmg(dice, target, wpn, arrowData, false, false, false, false, player.eq.wpn, true);   // 🏺 水精靈王的撫摸：未命中時 30% 改判為擦傷（50% 傷害、不爆擊）
 
     if (result.hit) {
@@ -168,8 +156,7 @@ function playerAttack() {
         if (target.curHp > 0) consumeStrawCurse(target);   // 🐍 詛咒稻草人：受到攻擊時額外扣 80 水魔傷（每次消耗 1 層·最多 3 層）
         if (result.dmg > 0) { try { playMobHurt(target); } catch(e){} }   // 🔊 音效：怪物受傷（依怪名對應；全域節流）
         if (player._setDragonblood2 && result.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.max(1, Math.floor(result.dmg * (player.hp < player.mhp * 0.5 ? 0.05 : 0.01))));   // 🐉 龍血2/5：造成物理傷害吸血1%（自身HP<50%→5%）
-        let _vampPctMain = (wpn && wpn.vampPct || 0) + ((player.eq.wpn && player.eq.wpn.reforgeVampPct) || 0);   // 💰 v3.8.34 奇岩重鑄「嗜血獠牙」：疊加武器本身既有吸血（若有）
-        if (_vampPctMain > 0 && result.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.floor(result.dmg * _vampPctMain));   // 🐉 嗜血者鎖鏈劍：吸取一般攻擊傷害的 % 為 HP
+        if (wpn && wpn.vampPct && result.dmg > 0) player.hp = Math.min(player.mhp, player.hp + Math.floor(result.dmg * wpn.vampPct));   // 🐉 嗜血者鎖鏈劍：吸取一般攻擊傷害的 % 為 HP
         if (wpn && wpn.procHealFlat && result.dmg > 0 && Math.random() * 100 < wpn.procHealFlat.rate) { player.hp = Math.min(player.mhp, player.hp + wpn.procHealFlat.hp); logCombat(`<span class="text-emerald-300 font-bold">【${wpn.n}】</span>恢復了 ${wpn.procHealFlat.hp} 點 HP。`, 'heal'); }   // 🏺 v3.1.80 處刑人的護身斧：一般攻擊命中 3% 機率恢復 10 HP
         if (wpn && wpn.procBurn && target.curHp > 0 && (wpn.procBurn.magicHit ? abnormalMagicHit(target) : (!wpn.procBurn.rate || Math.random() * 100 < wpn.procBurn.rate))) target._burnDot = { left: (wpn.procBurn.dur || 6) * 10, dmg: wpn.procBurn.dmg || 10, tick: (wpn.procBurn.tick || 1) * 10 };   // 🏺 熔岩灼燒的雙拳：命中附加灼燒 DoT（每秒 dmg 火傷、持續 dur 秒·刷新）；🔥 v3.7.52 magicHit:true（烈焰死騎劍）＝改走魔法命中公式判定
         if (wpn && wpn.procPoisonPct && target.curHp > 0 && result.dmg > 0) { if (!target.st) target.st = newMobStatus(); let _ppd = Math.max(1, Math.floor(result.dmg * (wpn.procPoisonPct.pct || 50) / 100)); target.st.poison = (wpn.procPoisonPct.dur || 6) * 10; target.st.poisonTick = 10; target.st.poisonStacks = 1; target.st.poisonUnit = _ppd; target.st.poisonDmg = _ppd; target.st.poisonSrc = 'player'; }   // 🌅 遺物 毒鵺的黑尾：命中附加「每秒該次傷害 pct%」中毒（最多 1 層·dur 秒·刷新覆蓋）
@@ -332,7 +319,6 @@ function playerAttack() {
 
     // 🔧 武器附魔施放：一般武器命中與否皆判定；procOnHit 武器僅命中時判定
     weaponSpellProc(target, !!result.hit);
-    equipmentSpellProc(target, !!result.hit);   // 🏺 非武器裝備特效（戒指/頭盔/防具/項鍊/手套/斗篷）
 
     // 🐉 龍鱗臂甲 額外攻擊：每攻擊週期結束後追加 N 次全傷害近戰攻擊
     dragonExtraAttackProc(target);
@@ -698,43 +684,6 @@ function weaponSpellProc(target, attackHit, instOverride) {
     if (_spEff) procWeaponSpell(t, _spEff, en);
     else if (wpn.procSkill) procFreeMagicSkill(t, wpn.procSkill, en, false, wpn);   // 🔧 武器免費施法：階級依潘朵拉權重／傳說／遺物判定
 }
-    
-// 🏺 遺物系統 equipmentSpellProc：通用「非武器裝備」特效觸發（戒指/頭盔/防具/項鍊/手套/斗篷等）。
-//   weaponSpellProc 只認 player.eq.wpn，防具/飾品掛 procSkill/spellProc/selfBuffProc 完全不會被檢查到——這裡另開一個
-//   掃全裝備欄位（跳過wpn/offwpn，那兩個已由weaponSpellProc處理）的通用版本，跟武器那套並行運作、互不影響。
-//   支援兩種效果：
-//     procSkill / spellProc → procFreeMagicSkill / procWeaponSpell（對敵人造成傷害，公式與武器版相同）
-//     selfBuffProc → 直接寫 player.buffs[skId]=sk.dur（給「自身」增益技能用，如聖結界；procSkill 系列不支援 buff 類技能）
-function equipmentSpellProc(target, attackHit) {
-    for (let slot in player.eq) {
-        if (slot === 'wpn' || slot === 'offwpn') continue;   // 武器已由 weaponSpellProc 處理，這裡不重複
-        let inst = player.eq[slot];
-        if (!inst) continue;
-        let ed = DB.items[inst.id];
-        if (!ed) continue;
-        if (ed.selfBuffProc && ed.selfBuffProc.skId && Math.random() * 100 < (ed.selfBuffProc.rate || ed.procRateBase || 5)) {
-            let _bsk = DB.skills[ed.selfBuffProc.skId];
-            if (_bsk && _bsk.type === 'buff' && (!_bsk.noRefresh || (player.buffs[ed.selfBuffProc.skId] || 0) <= 0)) {
-                player.buffs[ed.selfBuffProc.skId] = _bsk.dur;
-                logCombat(`<span class="font-bold" style="color:#38bdf8;text-shadow:0 0 6px #0ea5e9;">【${_bsk.n}】</span>攻擊時自動張開了防護。`, 'player-special');
-                updateUI();
-            }
-        }
-        if (!ed.procSkill && !ed.spellProc) continue;
-        if (ed.procOnHit && !attackHit) continue;   // 比照武器版：procOnHit 效果僅實際命中才觸發
-        if (Math.random() * 100 >= (ed.procRateBase || 1)) continue;   // 防具/飾品沒有強化，不吃 procRatePerEn
-        let t = (target && target.curHp > 0) ? target : null;
-        //if (!t) { let alive = mapState.mobs.filter(m => m && m.curHp > 0); if (!alive.length) continue; t = alive[Math.floor(Math.random() * alive.length)]; }
-        if (!t) {     
-        let alive = mapState.mobs.filter(m => m && m.curHp > 0);     
-        if (!alive.length) continue;     
-        t = alive[Math.floor(Math.random() * alive.length)]; 
-        }
-        if (ed.spellProc) procWeaponSpell(t, ed.spellProc, 0);
-        else if (ed.procSkill) procFreeMagicSkill(t, ed.procSkill, 0, false, ed);
-    }
-}
-    
 // 🐍 詛咒稻草人：目標帶 st.strawCurse 層數時，受到攻擊即消耗 1 層並額外承受 80 點水屬性魔法固定傷害（無視魔抗/防禦·比照 onHitEleDmg）。3 把武器種下(庫庫爾坎之矛/鐵手甲/蛇神倒勾獠牙)。掛玩家主攻擊(js/04)與傭兵主攻擊(js/06)兩處主命中。
 function consumeStrawCurse(m) {
     if (!m || m.curHp <= 0 || !m.st || !(m.st.strawCurse > 0)) return;
@@ -831,7 +780,6 @@ function playerStatusResisted(kind) {
         let e = player.eq[k]; if (!e) return; let dd = DB.items[e.id]; if (!dd) return;
         if (immF && dd[immF]) imm = true;
         if (resF && dd[resF]) pct += dd[resF];
-        if (resF && e[resF]) pct += (Number(e[resF]) || 0);   // 💰 v3.8.34 奇岩重鑄「磐石意志」：寫在裝備實例(item[resF])，不是共用範本，故 dd 之外要另外查實例
         if (dd.abnormalResist) pct += dd.abnormalResist;
     });
     if (kind === 'stun' && player.skills && player.skills.includes('sk_royal_kingguard')) pct += 20;   // 👑 王者加護
@@ -850,24 +798,16 @@ function allyStatusResisted(ally, kind) {
         let e = ally.eq && ally.eq[k]; if (!e) return; let dd = DB.items[e.id]; if (!dd) return;
         if (immF && dd[immF]) imm = true;
         if (resF && dd[resF]) pct += dd[resF];
-        if (resF && e[resF]) pct += (Number(e[resF]) || 0);   // 💰 v3.8.34 奇岩重鑄「磐石意志」：寫在裝備實例(item[resF])，不是共用範本，故 dd 之外要另外查實例
         if (dd.abnormalResist) pct += dd.abnormalResist;
     });
-     // 👑 王者加護光環：只要「主角自己有學」或者「出戰的傭兵有學」，傭兵就能吃到 +20 抗暈
-    let hasKingGuard = (ally.skills && ally.skills.includes('sk_royal_kingguard')) || 
-                       (typeof player !== 'undefined' && player.skills && player.skills.includes('sk_royal_kingguard'));
-    
-    if (kind === 'stun' && hasKingGuard) pct += 20;
+    if (kind === 'stun' && ally.skills && ally.skills.includes('sk_royal_kingguard')) pct += 20;   // 👑 王者加護
     let poisonImmune = kind === 'poison' && ally.d && ally.d.immPoison;
     let effectivePct = imm ? 100 : Math.min(100, pct);
     let randomRoll = (!poisonImmune && effectivePct > 0) ? Math.random() : 0;
     return statusResistanceFromRoll(kind, imm, pct, !!poisonImmune, randomRoll);
 }
-//function raceDrStep(multiplier, percent) {
-//    return multiplier * (1 - (percent || 0) / 100);
 function raceDrStep(multiplier, percent) {
-    // 🎯 升級版：加上 Math.floor() 或 Math.round() 確保減傷後的傷害一定是整數
-    return Math.floor(multiplier * (1 - (percent || 0) / 100));
+    return multiplier * (1 - (percent || 0) / 100);
 }
 // 🏺 v3.7.52 隨從的護身斗篷（raceDr:{race,pct}）：受到指定種族敵人的傷害減少 pct%（物理＋魔法·玩家/傭兵共用·掃全裝備欄乘算堆疊）
 function raceDrMult(entity, mob) {
@@ -1148,11 +1088,6 @@ function _statusInflictHeal(beforeKeys) {
         }
     }
 }
-// 🥋 反擊屏障・借力打力：估算敵方一次攻擊的基礎攻擊力（迴避/未命中時沒有實際傷害可借，用這個代入公式）
-function mobAtkPowerEstimate(mob) {
-    if (!mob || !mob.dmg) return 1;
-    return Math.max(1, roll(mob.dmg[0] || 1, mob.dmg[1] || 1) + (mob.db || 0));
-}
 function enemyPhysicalAttack(mob, idx, stunChance = 0, atkDmg = null, atkDb = null, isBasicAttack = false) {
     if (bindMobBlockedVs(mob, player)) return;   // 🕸️ v3.7.75 束縛：被束縛的怪物搆不到裝備遠距離武器的玩家（連擊技也走這裡→一併落空）
     let _snap = _playerStatusSnap(); _statusHealDepth++;
@@ -1190,10 +1125,6 @@ function _enemyPhysicalAttackInner(mob, idx, stunChance = 0, atkDmg = null, atkD
         // 武士刀居合：無「真盾牌」（臂甲可發動）且敵人攻擊被迴避時，50% 對攻擊者打一次必定命中的一般攻擊（🏅 反擊精通：100%）
         if (!player.dead && (!player.eq.shield || _isArmguard(player.eq.shield)) && mob.curHp > 0 && player.eq.wpn && getWeaponTags(player.eq.wpn.id).includes('武士刀') && (hasMastery('k_counter') || Math.random() < 0.50)) {
             procIai(mob);
-        }
-        // 🥋 反擊屏障・借力打力：屏障開啟時，單手劍/雙手武器裝備者「迴避成功」也能反擊（原本只有武士刀居合有迴避觸發）
-        if (!player.dead && player.buffs.sk_counter_barrier > 0 && mob.curHp > 0 && player.eq.wpn && (getWeaponTags(player.eq.wpn.id).includes('單手劍') || DB.items[player.eq.wpn.id].w2h) && !getWeaponTags(player.eq.wpn.id).includes('武士刀') && (hasMastery('k_counter') || Math.random() < 0.50)) {
-            procCounter(mob, mobAtkPowerEstimate(mob));   // 迴避時沒有實際傷害可借，用敵方攻擊力估算值代入
         }
         if (!player.dead) { _combatSrc = 'mercenary'; allyReactIai(mob); _combatSrc = null; }   // 🔧 傭兵居合：判定主玩家迴避成功
         return;
@@ -1427,7 +1358,7 @@ function _enemyPhysicalAttackInner(mob, idx, stunChance = 0, atkDmg = null, atkD
         // 單手劍反擊：受到敵人一般攻擊命中時觸發。一般 50% 機率；若裝備盾牌且本次觸發格檔(blocked)則必定反擊
         // 🏅 反擊精通：100% 觸發
         if (!player.dead && mob.curHp > 0 && player.eq.wpn && (getWeaponTags(player.eq.wpn.id).includes('單手劍') || (player.buffs.sk_counter_barrier > 0 && DB.items[player.eq.wpn.id].w2h)) && !(getWeaponTags(player.eq.wpn.id).includes('武士刀') && !(player.eq.shield && !_isArmguard(player.eq.shield)))) {   // 🔧 反擊屏障：雙手武器亦可反擊；🛡️ 反擊/居合雙標籤武器「無真盾牌(空手或臂甲)」時→改走居合、不發動反擊（唯獨裝真盾牌才反擊）
-            if (blocked || hasMastery('k_counter') || Math.random() < 0.50) procCounter(mob, totalDmg);   // 🥋 借力打力：傳入怪物這次實際造成的傷害
+            if (blocked || hasMastery('k_counter') || Math.random() < 0.50) procCounter(mob);
         }
         if (!player.dead) { _combatSrc = 'mercenary'; allyReactCounter(mob, blocked); _combatSrc = null; }   // 🔧 傭兵反擊：判定主玩家受擊（玩家格檔則必定反擊）
     } else {
@@ -1435,10 +1366,6 @@ function _enemyPhysicalAttackInner(mob, idx, stunChance = 0, atkDmg = null, atkD
         // 武士刀居合：無「真盾牌」（臂甲可發動）且敵人攻擊未命中時，50% 對攻擊者打一次必定命中的一般攻擊（🏅 反擊精通：100%）
         if (!player.dead && (!player.eq.shield || _isArmguard(player.eq.shield)) && mob.curHp > 0 && player.eq.wpn && getWeaponTags(player.eq.wpn.id).includes('武士刀') && (hasMastery('k_counter') || Math.random() < 0.50)) {
             procIai(mob);
-        }
-        // 🥋 反擊屏障・借力打力：屏障開啟時，單手劍/雙手武器裝備者在「敵人攻擊落空」時也能反擊
-        if (!player.dead && player.buffs.sk_counter_barrier > 0 && mob.curHp > 0 && player.eq.wpn && (getWeaponTags(player.eq.wpn.id).includes('單手劍') || DB.items[player.eq.wpn.id].w2h) && !getWeaponTags(player.eq.wpn.id).includes('武士刀') && (hasMastery('k_counter') || Math.random() < 0.50)) {
-            procCounter(mob, mobAtkPowerEstimate(mob));
         }
         _combatSrc = 'mercenary'; allyReactIai(mob); _combatSrc = null;   // 🔧 傭兵居合：判定敵人未命中主玩家
     }
