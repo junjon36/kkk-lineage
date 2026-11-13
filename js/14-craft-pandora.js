@@ -541,7 +541,7 @@ function doDemonKingCraft(idx) {
     if (lack.length) { logSys(`<span class="text-red-400 font-bold">材料不足，無法製作。</span><span class="text-red-300">（尚缺：${lack.join('、')}）</span>`); return; }
     DEMONKING_MATS.forEach(m => ensureMaterial(m.id, m.cnt, 0));   // 🔧 先自動補製可合成的中間物（黑色米索莉金屬板等），玩家不需先手動製作金屬板
     DEMONKING_MATS.forEach(m => consumeMaterialById(m.id, m.cnt));
-    let inherit = { en: src.en || 0, attr: src.attr || false, bless: src.bless ? src.bless : rollAffixesNew(0.10).bless, anc: src.anc || false, seteff: src.seteff || false };   // 🔧 祝福傳承：來源祝福/詛咒→沿用；來源無詞綴→製作 10% 重骰祝福
+    let inherit = { en: src.en || 0, attr: src.attr || false, bless: src.bless ? src.bless : rollAffixesNew(0.50).bless, anc: src.anc || false, seteff: src.seteff || false };   // 🔧 祝福傳承：來源祝福/詛咒→沿用；來源無詞綴→製作 10% 重骰祝福
     if (src._whSource) { whRemoveStackByUid(src.uid, 1); }   // 🔧 來源武器在倉庫：自倉庫精準消耗該實例
     else if ((src.cnt || 1) > 1) src.cnt -= 1; else player.inv = player.inv.filter(i => i.uid !== src.uid);   // 消耗 1 把來源惡魔武器（背包）
     let inst = { id: r.result, uid: uid(), cnt: 1, en: inherit.en, attr: inherit.attr, bless: inherit.bless, anc: inherit.anc, seteff: inherit.seteff, lock: false };
@@ -604,7 +604,7 @@ function doLumielCraft(idx) {
     if (lack.length) { logSys(`<span class="text-red-400 font-bold">材料不足，無法製作。</span><span class="text-red-300">（尚缺：${lack.join('、')}）</span>`); return; }
     r.mats.forEach(m => ensureMaterial(m.id, m.cnt, 0));   // 🔧 先自動補製可合成的中間物，玩家不需先手動製作
     r.mats.forEach(m => consumeMaterialById(m.id, m.cnt));
-    let inherit = { en: src.en || 0, attr: src.attr || false, bless: src.bless ? src.bless : rollAffixesNew(0.10).bless, anc: src.anc || false, seteff: src.seteff || false };   // 🔧 祝福傳承：來源祝福/詛咒→沿用；來源無詞綴→製作 10% 重骰祝福
+    let inherit = { en: src.en || 0, attr: src.attr || false, bless: src.bless ? src.bless : rollAffixesNew(0.50).bless, anc: src.anc || false, seteff: src.seteff || false };   // 🔧 祝福傳承：來源祝福/詛咒→沿用；來源無詞綴→製作 10% 重骰祝福
     if (src._whSource) { whRemoveStackByUid(src.uid, 1); }   // 來源裝備在倉庫：自倉庫精準消耗
     else if ((src.cnt || 1) > 1) src.cnt -= 1; else player.inv = player.inv.filter(i => i.uid !== src.uid);   // 消耗 1 件來源戰士團裝備（背包）
     let inst = { id: r.result, uid: uid(), cnt: 1, en: inherit.en, attr: inherit.attr, bless: inherit.bless, anc: inherit.anc, seteff: inherit.seteff, lock: false };
@@ -771,7 +771,7 @@ function doSlayerCraft(idx) {
     r.mats.forEach(m => consumeMaterialById(m.id, m.cnt));
     if (src._whSource) { whRemoveStackByUid(src.uid, 1); }   // 來源鏈甲在倉庫：自倉庫精準消耗該實例
     else if ((src.cnt || 1) > 1) src.cnt -= 1; else player.inv = player.inv.filter(i => i.uid !== src.uid);   // 消耗 1 件來源鏈甲（背包）
-    gainItem(r.result, 1, true, false, false, false, null, 0.10);   // 成品恆 +0（不繼承來源強化值／詞綴）；製作 10% 祝福
+    gainItem(r.result, 1, true, false, false, false, null, 0.50);   // 成品恆 +0（不繼承來源強化值／詞綴）；製作 10% 祝福
     logSys(`<span class="text-amber-200 font-bold">宙斯之熔岩高崙</span> 製作完成：<span class="${getItemColor({ id: r.result })} font-bold">${DB.items[r.result].n}</span>`);
     updateUI(); renderTabs(true); saveGame();
     renderUniversalCraft(document.getElementById('interaction-content'), 'npc_zeus_golem');
@@ -1178,7 +1178,7 @@ function doCraft(npcId, recipeIdx, sherine) {   // 🔮 sherine 參數保留簽�
         for (let k = 0; k < makeCount; k++) {
             _forceSherineSet = !!sherine;   // 🔮 席琳製作：每件成品必定附帶隨機一種席琳套裝效果（寵物裝備 slot 非席琳適用部位，gainItem 自然不附）
             _forceBless = (k < _craftBlessCount);   // 🔧 消耗幾件祝福裝備材料→前幾件成品必定祝福（其餘照製作 10% 擲）
-            gainItem(recipe.result, recipe.yield || 1, true, false, false, false, null, 0.10);   // 🦴 寵物裝備仍由 _noAffixCtx 維持白板
+            gainItem(recipe.result, recipe.yield || 1, true, false, false, false, null, 0.50);   // 🦴 寵物裝備仍由 _noAffixCtx 維持白板
             _forceSherineSet = false; _forceBless = false;
         }
     } finally { _tradLootCtx = false; _forceSherineSet = false; _noAffixCtx = false; _forceBless = false; }   // try/finally：例外也必清旗標，杜絕殘留洩漏
