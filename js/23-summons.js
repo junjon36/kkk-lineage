@@ -46,22 +46,22 @@ const SUMMON_TIERS = [
         { n: '魔熊',   lv: 44, hp: 700, aspd: 15 },
         { n: '魔狼',   lv: 44, hp: 460, aspd: 17, ring: true },
         { n: '魔蝙蝠', lv: 44, hp: 340, aspd: 22, ring: true, proc: [{ kind: 'magic', p: 0.20, name: '超音波', ele: 'none' }] } ] },
-    { reqLv: 56, div: 8, cap: 5, ringCap: 6, mobs: [
+    { reqLv: 56, div: 8, cap: 5, ringCap: 8, mobs: [
         { n: '巨大守護螞蟻',   lv: 48, hp: 650, aspd: 13, ring: true },
         { n: '強化白螞蟻群',   lv: 48, hp: 490, aspd: 17, ring: true },
         { n: '巨大強化白螞蟻', lv: 48, hp: 360, aspd: 15, ring: true, proc: [{ kind: 'poisonAll', p: 0.20, name: '噴射毒液' }] } ] },
-    { reqLv: 60, div: 8, cap: 5, ringCap: 6, mobs: [
+    { reqLv: 60, div: 8, cap: 5, ringCap: 8, mobs: [
         { n: '地獄奴隸', lv: 52, hp: 700, aspd: 13, ring: true },
         { n: '闇精靈王', lv: 52, hp: 520, aspd: 18, ring: true },
         { n: '食腐獸',   lv: 52, hp: 380, aspd: 15, ring: true, proc: [{ kind: 'poisonAll', p: 0.20, name: '噴射毒液' }] } ] },
-    { reqLv: 64, div: 10, cap: 5, ringCap: 6, mobs: [
+    { reqLv: 64, div: 10, cap: 5, ringCap: 8, mobs: [
         { n: '地獄束縛犬', lv: 50, hp: 850, aspd: 15, ring: true, proc: [{ kind: 'magicAll', p: 0.20, name: '火焰噴吐', ele: 'fire' }] } ] },
-    { reqLv: 68, reqCha: 32, div: 10, cap: 5, ringCap: 6, mobs: [
+    { reqLv: 68, reqCha: 32, div: 10, cap: 5, ringCap: 8, mobs: [
         { n: '變形怪首領', lv: 53, hp: 1000, aspd: 17, ring: true, proc: [{ kind: 'magic', p: 0.25, name: '冰裂術', ele: 'water' }, { kind: 'magic', p: 0.15, name: '烈炎術', ele: 'fire' }] } ] },
-    { reqLv: 70, reqCha: 38,div: 10, cap: 5, ringCap: 6, mobs: [
+    { reqLv: 70, reqCha: 38,div: 10, cap: 5, ringCap: 8, mobs: [
         { n: '巨大牛人', lv: 53, hp: 1500, aspd: 15, ring: true, proc: [{ kind: 'magic', p: 0.25, name: '寒冰鎚', ele: 'water', heavy: 1.6, slow: true }] } ] },
-    { reqLv: 72, reqCha: 44,div: 10, cap: 5, ringCap: 6, premium: 1.25, mobs: [
-        { n: '黑豹', lv: 63, hp: 3000, aspd: 22, ring: true, proc: [{ kind: 'magic', p: 0.25, name: '地面震裂', ele: 'earth', heavy: 1.6, stun: true }] } ] }
+    { reqLv: 72, reqCha: 44,div: 10, cap: 5, ringCap: 8, premium: 1.25, mobs: [
+        { n: '黑豹', lv: 63, hp: 5000, aspd: 22, ring: true, proc: [{ kind: 'magic', p: 0.20, name: '地面震裂', ele: 'earth', heavy: 1.6, stun: true }] } ] }
 ];
 const SUMMON_NO_RING_MAX_LV = 52;   // 無戒指：固定召喚「已解鎖最高階」預設怪，上限 52 魔熊階
 
